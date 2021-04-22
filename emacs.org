@@ -1,0 +1,1070 @@
+#+title: Emacs Config
+#+STARTUP: content
+
+* Startup Performance
+#+begin_src emacs-lisp 
+;; The default is 800 kilobytes.  Measured in bytes.
+(setq gc-cons-threshold (* 50 1000 1000))
+
+(defun efs/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                     (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'efs/display-startup-time)
+#+end_src
+
+* Config Variables
+** General
+#+BEGIN_SRC emacs-lisp
+    (defvar dotfiles/home user-emacs-directory 
+      "Original value of `user-emacs-directory'.")
+
+    (defvar dotfiles/cache (expand-file-name "~/.cache/emacs/") 
+      "Redirection target of `user-emacs-directory'.")
+
+    (defvar dotfiles/browser (getenv "BROWSER") 
+      "Default system web browser.")
+
+    (defvar dotfiles/language (getenv "LANG") 
+      "Default system dictionary language.")
+
+    (defvar dotfiles/font "Fira Code" 
+      "Unified system font family.")
+
+    (defvar dotfiles/font-size 120
+      "Unified system font size.")
+
+    (defvar dotfiles/frame-transparency '(90 . 90)
+      "transperaency")
+
+    (defvar dotfiles/idle 1.0
+      "Delay time before offering suggestions and completions.")
+
+    (defvar dotfiles/leader-key "SPC" 
+      "All powerful leader key.")
+
+    (defvar dotfiles/leader-key-global 
+      (concat "C-" dotfiles/leader-key) 
+      "Global prefix for the leader key.")
+
+    (defvar dotfiles/projects 
+      (expand-file-name "~/.local/source/") 
+      "Location of source code projects.")
+
+    (defvar dotfiles/passwords 
+      (expand-file-name "~/.password-store/") 
+      "Location of local password store.")
+
+    (defvar dotfiles/public-key 
+      "" ;;Override in host config
+      "GPG key to encrypt org files for.")
+
+#+END_SRC
+
+** Org
+private org setting should be in host config
+
+#+begin_src emacs-lisp
+
+  (defvar dotfiles/orgmode-directory "~/org/"
+      "location of org files")
+
+#+end_src
+
+* Per Host Config (Overrides)
+Must be ran after the config section
+These are host specific variables, plus all the private variables
+
+#+begin_src emacs-lisp
+    (defun dotfiles/load-host (host-name)
+	"Load the configuration file for `host-name'."
+	(let ((host-file (concat dotfiles/home "hosts/" host-name ".org")))
+	  (if (file-exists-p host-file)
+	      (progn
+	       (message "Loading Host file: %s" host-file)
+		(org-babel-load-file host-file))
+	      (message "No Host file found: %s" host-file))))
+
+    (dotfiles/load-host system-name)
+
+#+end_src
+* Cache
+ Shortly after initialization, before most packages load, we change the value to `dotfiles/cache'.
+ https://chrishayward.xyz/immutable-emacs/.
+
+#+BEGIN_SRC emacs-lisp
+  (setq user-emacs-directory dotfiles/cache
+        url-history-file (concat user-emacs-directory "url/history"))
+
+  (setq custom-file (concat user-emacs-directory "custom.el"))
+  (load custom-file t)
+#+END_SRC
+* Server Mode
+Start the Emacs server from this instance so that all emacsclient calls are routed here.
+
+#+BEGIN_SRC emacs-lisp
+(server-start)
+#+END_SRC
+* Package Management
+
+Set up ELPA, MELPA, and Org package repositories and load =use-package= to manage package configuration.
+
+*NOTE:* I'm keeping this section in but disabling tangling for now because I'm trying out =straight.el= as an alternative.
+
+#+begin_src emacs-lisp :tangle no
+
+  ;; Initialize package sources
+  (require 'package)
+
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("melpa-stable" . "https://stable.melpa.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")))
+
+  (package-initialize)
+  ;; (unless package-archive-contents
+  ;;   (package-refresh-contents))
+
+  ;; Initialize use-package on non-Linux platforms
+  (unless (package-installed-p 'use-package)
+     (package-install 'use-package))
+
+  (require 'use-package)
+
+  ;; Uncomment this to get a reading on packages that get loaded at startup
+  (setq use-package-verbose t)
+
+  (setq use-package-always-ensure t)
+
+#+end_src
+
+** straight.el
+
+Trying out =straight.el= for package management.  So far so good!
+
+#+begin_src emacs-lisp
+
+  ;; Bootstrap straight.el
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+          'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+
+  (setq straight-use-package-by-default t)
+
+  ;; Use straight.el for use-package expressions
+  (straight-use-package 'use-package)
+
+  ;; Load the helper package for commands like `straight-x-clean-unused-repos'
+  (require 'straight-x)
+
+#+end_src
+
+** No littering
+#+begin_src emacs-lisp
+
+   ;; Use no-littering to automatically set common paths to the new user-emacs-directory
+    (use-package no-littering)
+#+end_src
+
+** Auto Updates
+#+begin_src emacs-lisp
+;;(use-package auto-package-update
+;;  :custom
+;;  (auto-package-update-interval 7)
+ ;; (auto-package-update-prompt-before-update t)
+ ;; (auto-package-update-hide-results t)
+ ;; :config
+ ;; (auto-package-update-maybe)
+  ;;(auto-package-update-at-time "09:00"))
+#+end_src
+
+* Editor
+
+** Selection menu
+
+#+begin_src emacs-lisp
+    (use-package ivy
+      :diminish
+      :bind (("C-s" . swiper)
+             :map ivy-minibuffer-map
+             ("TAB" . ivy-alt-done)
+             ("C-l" . ivy-alt-done)
+             ("C-j" . ivy-next-line)
+             ("C-k" . ivy-previous-line)
+             :map ivy-switch-buffer-map
+             ("C-k" . ivy-previous-line)
+             ("C-l" . ivy-done)
+             ("C-d" . ivy-switch-buffer-kill)
+             :map ivy-reverse-i-search-map
+             ("C-k" . ivy-previous-line)
+             ("C-d" . ivy-reverse-i-search-kill))
+      :init
+      (ivy-mode 1)
+      :config
+      (setq ivy-use-virtual-buffers t)
+
+  )
+#+end_src
+
+** Swiper 
+M-n put word at point into Swiper
+
+** Keybinding Completions
+
+#+begin_src emacs-lisp
+  (use-package which-key
+    :demand t
+    :bind (("C-h SPC" . which-key-toggle-docstring))
+
+    :config
+    (setq which-key-show-early-on-C-h t)
+    ; Only show when you hit C-h manually
+    (setq which-key-idle-delay dotfiles/idle)
+    (setq which-key-idle-secondary-delay 0.05)
+    (which-key-mode 1)
+  )
+#+end_src
+
+** Replace built in commands
+
+*Counsel*[fn:1] is a customized set of commands to replace built in completion buffers.
+
+#+begin_src emacs-lisp
+(use-package counsel
+   :after ivy
+  :custom (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
+  :config (counsel-mode 1))
+#+end_src 
+
+** Undo
+#+BEGIN_SRC emacs-lisp
+(setq evil-want-fine-undo t)
+#+END_SRC
+** Show recent m-x commands
+#+BEGIN_SRC emacs-lisp
+(use-package amx)
+#+END_SRC
+** Additional columns in Ivy
+
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons-ivy-rich
+  :ensure counsel
+  :init (all-the-icons-ivy-rich-mode 1))
+
+(use-package ivy-rich
+  :ensure counsel
+  :init (ivy-rich-mode 1))
+#+END_SRC
+**  Y or N
+#+begin_src emacs-lisp
+    (defalias 'yes-or-no-p 'y-or-n-p)
+#+end_src
+* Keybindings
+
+** Make ESC quit prompts
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+#+END_SRC
+
+** Evil
+
+#+BEGIN_SRC emacs-lisp
+      (use-package evil
+        :custom (evil-want-integration t)  ;; Required for `evil-collection'.
+                (evil-want-keybinding nil) ;; Same as above
+        :config (evil-mode +1)
+        :init   (setq evil-undo-system 'undo-fu))
+
+    (use-package evil-collection
+    :after evil
+    :custom (evil-collection-setup-minibuffer t)
+    :init (evil-collection-init))
+
+    (use-package undo-fu
+      :config
+  ;;    (global-undo-tree-mode -1)
+      (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
+      (define-key evil-normal-state-map "\C-r" 'undo-fu-only-redo))
+
+#+END_SRC
+
+** Leader Key
+
+#+begin_src emacs-lisp
+(use-package general
+  :after evil
+  :config
+  (general-create-definer dotfiles/leader
+    :states '(normal motion)
+    :keymaps 'override
+    :prefix dotfiles/leader-key
+    :global-prefix dotfiles/leader-key-global))
+#+end_src
+
+
+** Transient bindings
++ Defer loading for performance
+
+#+begin_src emacs-lisp
+(use-package hydra
+  :defer t)
+#+end_src
+
+** Commenting
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil-nerd-commenter
+  :after evil
+  :bind ("M-;" . evilnc-comment-or-uncomment-lines))
+#+END_SRC
+
+** Top Level Keybindings
+#+begin_src emacs-lisp
+    (dotfiles/leader
+      "."   '(find-file :which-key "Files")
+      ":"   '(eval-expression :which-key "expression")
+      "SPC" '(counsel-M-x :which-key "M-x")
+      "r"   '(ivy-resume :which-key "ivy resume")
+      "c"   '(kill-buffer-and-window :which-key "Close")
+
+      "a"  '(:ignore t :which-key "Apps")
+      "b"  '(:ignore t :which-key "Buffer")
+      "o"  '(:ignore t :which-key "Open")
+      "s"  '(:ignore t :which-key "search")
+      "S"  '(:ignore t :which-key "Spelling")
+      "t"  '(:ignore t :which-key "Toggle")
+
+      "au" '(straight-pull-all :which-key "update straight")
+
+      "td" '(toggle-debug-on-error :which-key "debug")
+  )
+#+end_src
+
+** Buffer
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "," '(counsel-switch-buffer :which-key "Buffers")
+    "SPC"  '(counsel-M-x :which-key "M-x")
+    "bb"  '(counsel-switch-buffer :which-key "list")
+    "bd"  '(evil-delete-buffer :which-key "delete")
+    "bl"  '(evil-switch-to-windows-last-buffer :which-key "last")
+    "bm"  '(exit-minibuffer :which-key "exit-mini")
+    "bn"  '(next-buffer :which-key "next")
+    "bp"  '(previous-minibuffer :which-key "prev")
+    "br"  '(counsel-buffer-or-recentf  :which-key "recent"))
+#+end_src
+
+** Exiting / Quiting Keybindings
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "q" '(:ignore t :which-key "Quit")
+  "qq" '(save-buffers-kill-emacs :which-key "Save")
+  "qw" '(kill-emacs :which-key "Now")
+  "qf" '(delete-frame :which-key "Frame"))
+#+end_src
+
+** File
+#+begin_src emacs-lisp
+  (dotfiles/leader
+      "f"  '(:ignore t :which-key "file")
+      "fd" '((lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/emacs.org"))) :which-key "dotfile" )
+      "ff"  '(find-file :which-key "find file")
+      "fj"  '(counsel-file-jump :which-key "jump to file")
+      "fr"  '(counsel-recentf :which-key "recent")
+      "fR"  '(revert-buffer :which-key "revert file")
+      "fs"  '(save-buffer :which-key "save"))
+#+end_src
+** Window Management Keybinding
+
+*** Winum
+#+begin_src emacs-lisp
+  (use-package winum
+    :after evil
+    :config (winum-mode)
+  )
+
+(dotfiles/leader
+  "0" '(winum-select-window-0 :which-key "Window-0")
+  "1" '(winum-select-window-1 :which-key "Window-1")
+  "2" '(winum-select-window-2 :which-key "Window-2")
+  "3" '(winum-select-window-3 :which-key "Window-3")
+  "4" '(winum-select-window-4 :which-key "Window-4")
+)
+#+end_src
+
+
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "w" '(:ignore t :which-key "Window")
+  "ww" '(window-swap-states :which-key "Swap")
+  "wd" '(delete-window :which-key "Delete")
+  "wh" '(windmove-left :which-key "Left")
+  "wj" '(windmove-down :which-key "Down")
+  "wk" '(windmove-up :which-key "Up")
+  "wl" '(windmove-right :which-key "Right")
+  "ws" '(:ignore t :which-key "Split")
+  "wsj" '(split-window-below :which-key "Down")
+  "wsl" '(split-window-right :which-key "Right"))
+#+end_src
+
+
+* Interface
+** Make the window modernized
+#+BEGIN_SRC emacs-lisp
+(setq inhibit-startup-message t)
+
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)        ; Give some breathing room
+
+(menu-bar-mode -1)            ; Disable the menu bar
+
+;; Set up the visible bell
+(setq visible-bell t)
+
+#+END_SRC
+
+** Unified fonts
+
+Write out to all of Emacs' available font faces with the unified font defined in the options.
+
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :font dotfiles/font :height dotfiles/font-size)
+(set-face-attribute 'fixed-pitch nil :font dotfiles/font :height dotfiles/font-size)
+(set-face-attribute 'variable-pitch nil :font dotfiles/font :height dotfiles/font-size)
+#+end_src
+
+** Text scaling
+
+Define a transient keybinding for Scaling the text.
+
+#+begin_src emacs-lisp
+(defhydra hydra-text-scale (:timeout 4)
+  "Scale"
+  ("j" text-scale-increase "Increase")
+  ("k" text-scale-decrease "Decrease")
+  ("f" nil "Finished" :exit t))
+#+end_src
+
++ Scale the text inside of buffers with =SPC t f=
+  * Increase =j=
+  * Decrease =k=
+  * Finished =f=
+
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "tf" '(hydra-text-scale/body :which-key "Font"))
+#+end_src
+
+** Icon fonts
+
+Dired feels more modern with prioritized icon fonts using *All the Icons*[fn:3]. This makes navigation and visually parsing directories much faster, given that file types are quickly identified by their corresponding icons.
+
+#+begin_src emacs-lisp
+(use-package all-the-icons)
+#+end_src
+
+Integration with the *All the Icons Dired*[fn:4]package.
+
+#+begin_src emacs-lisp
+;;(use-package all-the-icons-dired)
+;;(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+#+end_src
+
+** Symbols
+
+Programming buffers made prettier with *Pretty mode*[fn:9], complimentary to the built-in *Prettify symbols mode*[fn:10].
+
+#+begin_src emacs-lisp
+(use-package pretty-mode
+  :hook (python-mode . turn-on-pretty-mode))
+#+end_src
+
+** Ligatures
+
+Enable font ligatures via *Fira Code mode*[fn:11].
+
++ Perform when *Fira Code* is the current font
++ Don't enable on TTY
+
+#+begin_src emacs-lisp
+(use-package fira-code-mode
+  :when (and (window-system)
+             (equal dotfiles/font "Fira Code"))
+  :hook (prog-mode org-mode))
+#+end_src
+
+Toggle global ligature mode with =SPC t g=.
+
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "tg" '(global-fira-code-mode :which-key "Ligatures"))
+#+end_src
+
+** Emojification
+
+Gotta have those emojis, first class support for Emacs via the *Emacs-emojify*[fn:13] package.
+
+#+begin_src emacs-lisp
+(use-package emojify
+  :when (window-system)
+  :hook (after-init . global-emojify-mode))
+#+end_src
+
++ Place *Emojify*[fn:13] bindings behind =SPC f=
+  * List with =l=
+  * Search with =s=
+  * Insert with =i=
+  * Describe with =d=
+
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "i" '(:ignore t :which-key "insert")
+  "if" '(:ignore t :which-key "Emojify")
+  "ifl" '(emojify-list-emojis :which-key "List")
+  "ifs" '(emojify-apropos-emoji :which-key "Search")
+  "ifi" '(emojify-insert-emoji :which-key "Insert")
+  "ifd" '(emojify-describe-emoji :which-key "Describe"))
+#+end_src
+
+** Modern themes
+
+High quality and modern colour themes are provided in the *Doom Themes*[fn:5] package.
+
+#+begin_src emacs-lisp
+(use-package doom-themes
+  :init (load-theme 'doom-one t))
+#+end_src
+
+Load a theme with =SPC t t=.
+
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "tt" '(counsel-load-theme t t :which-key "Theme"))
+#+end_src
+
+** Status bar
+
+*** Doom Modeline
+*Doom modeline* provides an elegant and modern status bar / modeline.
+
+#+begin_src emacs-lisp
+       (use-package doom-modeline
+         :custom
+              (doom-modeline-height 16)
+         :config
+              (doom-modeline-mode 1)
+     )
+#+end_src
+*** Which Function
+#+begin_src emacs-lisp
+  (which-function-mode t)
+#+end_src
+
+Include full tree of the org location
+#+begin_src emacs-lisp
+    (defun org-which-function ()
+      (interactive)
+      (when (eq major-mode 'org-mode)
+            (org-display-outline-path nil t ">" t)
+      ))
+  ;;(setq header-line-format '(:eval (org-display-outline-path)))
+
+    (add-to-list 'which-func-functions #'org-which-function)
+#+end_src
+
+** Transparency
+#+begin_src emacs-lisp
+(set-frame-parameter (selected-frame) 'alpha dotfiles/frame-transparency)
+(add-to-list 'default-frame-alist `(alpha . ,dotfiles/frame-transparency))
+(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+end_src
+
+** Parentheses
+
+***  Highlight matching
+#+begin_src emacs-lisp
+    (show-paren-mode 1)
+#+end_src
+
+*** Parenthesis
+
+Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
+
+#+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+** flycheck
+#+begin_src emacs-lisp
+(use-package flycheck
+  :defer t
+  :hook (lsp-mode . flycheck-mode))
+#+end_src
+** evil-owl
+#+begin_src emacs-lisp
+  (use-package evil-owl
+    :config
+    ;; (setq evil-owl-max-string-length 500)
+    ;; (add-to-list 'display-buffer-alist
+    ;;              '("*evil-owl*"
+    ;;                (display-buffer-in-side-window)
+    ;;                (side . bottom)
+    ;;                (window-height . 0.3)))
+
+    ;;use posframe
+    (setq evil-owl-display-method 'posframe
+        evil-owl-extra-posframe-args '(:width 50 :height 20)
+        evil-owl-max-string-length 50)
+  (evil-owl-mode))
+#+end_src
+* Snippets
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :hook (prog-mode . yas-minor-mode)
+  :config
+  (yas-reload-all))
+#+end_src
+* Files
+** Auto-save 
+#+BEGIN_SRC emacs-lisp
+    (setq auto-save-default t
+      auto-saves-dir (concat dotfiles/cache "autosave/")
+      auto-save-file-name-transforms `((".*" ,auto-saves-dir t)))
+#+END_SRC
+** Backups
+#+begin_src emacs-lisp
+(setq create-lockfiles t
+      make-backup-files t
+      ;; But in case the user does enable it, some sensible defaults:
+      version-control t     ; number each backup file
+      backup-by-copying t   ; instead of renaming current file (clobbers links)
+      delete-old-versions t ; clean up after itself
+      kept-old-versions 5
+      kept-new-versions 5
+      backup-directory-alist (list (cons "." (concat dotfiles/cache "backup/")))
+      tramp-backup-directory-alist backup-directory-alist)
+#+end_src
+** Track Recent Files
+*** Turn on Recent file mode
+#+BEGIN_SRC emacs-lisp
+(recentf-mode 1)
+#+END_SRC
+*** Auto save the recent list
+#+BEGIN_SRC emacs-lisp
+(run-at-time nil (* 15 60) 'recentf-save-list)
+#+END_SRC
+* Org
+** Better Font Faces
+
+The =efs/org-font-setup= function configures various text faces to tweak the sizes of headings and use variable width fonts in most cases so that it looks more like we're editing a document in =org-mode=.  We switch back to fixed width (monospace) fonts for code blocks and tables so that they display correctly.
+
+#+begin_src emacs-lisp
+
+  (defun dotfiles/org-font-setup ()
+    ;; Replace list hyphen with dot
+    (font-lock-add-keywords 'org-mode
+                            '(("^ *\\([-]\\) "
+                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+    ;; Set faces for heading levels
+    (dolist (face '((org-level-1 . 1.2)
+                    (org-level-2 . 1.1)
+                    (org-level-3 . 1.05)
+                    (org-level-4 . 1.0)
+                    (org-level-5 . 1.1)
+                    (org-level-6 . 1.1)
+                    (org-level-7 . 1.1)
+                    (org-level-8 . 1.1)))
+      (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+
+    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+    (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
+    (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+    (set-face-attribute 'org-code nil     :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-table nil    :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-checkbox nil  :inherit 'fixed-pitch)
+    (set-face-attribute 'line-number nil :inherit 'fixed-pitch)
+    (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
+
+#+end_src
+
+** Templates
+#+begin_src emacs-lisp 
+
+ (defun dotfiles/org-mode-config-templates ()
+  :config (require 'org-tempo)
+            (add-to-list 'org-structure-template-alist '("s" . "src"))
+            (add-to-list 'org-structure-template-alist '("q" . "quote"))
+            (add-to-list 'org-structure-template-alist '("e" . "example"))
+            (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+            (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+            (org-babel-do-load-languages 'org-babel-load-languages '((shell . t)
+                                                                     (emacs-lisp . t)))
+)
+#+end_src
+** General & Package Setup
+
+#+BEGIN_SRC emacs-lisp
+      (defun dotfiles/org-mode-setup ()
+        (org-indent-mode)
+        (variable-pitch-mode 1)
+        (visual-line-mode 1))
+
+        (use-package org
+          :straight (:type built-in)
+          :hook (org-mode . dotfiles/org-mode-setup)
+          :config
+          (setq org-ellipsis " ▾")
+         (dotfiles/org-font-setup)
+          (dotfiles/org-mode-config-templates))
+
+        (use-package org-bullets
+          :after org
+          :hook (org-mode . org-bullets-mode)
+          :custom
+          (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+        (defun dotfiles/org-mode-visual-fill ()
+          (setq visual-fill-column-width 100
+                visual-fill-column-center-text t)
+          (visual-fill-column-mode 1))
+
+        (use-package visual-fill-column
+          :hook (org-mode . dotfiles/org-mode-visual-fill))
+#+END_SRC
+
+** superstar
+
+Make headline stars *super* with *Org superstar mode*[fn:14].
+
+#+begin_src emacs-lisp
+;; (use-package org-superstar
+;;   :when (window-system)
+;;   :after org
+;;   :hook (org-mode . org-superstar-mode))
+#+end_src
+
+** Indendent setting
+ Enable `org-indent-mode' by default
+#+BEGIN_SRC emacs-lisp
+(setq org-startup-indented t) 
+#+END_SRC
+** Todo settings
+   when marking a task as Done it will get a timestamp
+#+BEGIN_SRC emacs-lisp
+(setq org-log-done 'time)  
+#+END_SRC
+** Agenda
+#+BEGIN_SRC emacs-lisp
+  (setq org-agenda-skip-deadline-prewarning-if-scheduled 1)
+
+  (setq org-agenda-prefix-format '(
+    (todo .
+          " %i %-1:c %(concat \"[ \"(org-format-outline-path (org-get-outline-path)) \" ]\") ")))
+#+END_SRC
+
+** Evil
+#+begin_src emacs-lisp
+  (use-package evil-org
+    :ensure t
+    :after org
+    :hook (org-mode . (lambda () evil-org-mode))
+    :config
+    (require 'evil-org-agenda)
+    (evil-org-agenda-set-keys)
+    (evil-org-set-key-theme '(textobjects insert navigation additional shift leader todo heading))
+
+  )
+#+end_src
+** Keybindings
+
+#+BEGIN_SRC emacs-lisp
+
+  (dotfiles/leader
+    "oa" '(org-agenda :which-key "agenda"))
+
+  (dotfiles/leader org-mode-map
+  "er" '(eval-region :which-key "eval region")
+  "eb" '(org-babel-execute-src-block :which-key "eval babel")
+  "m." '(counsel-org-goto :which-key "org-goto")
+  "mt" '(org-todo :which-key "todo")
+  "mi" '(:ignore t :which-key "Insert")
+  "mih" '(org-insert-heading-after-current :which-key "heading(after)")
+  "mit" '(org-insert-structure-template :which-key "template"))
+
+  (dotfiles/leader emacs-lisp-mode-map
+  "eb" '(eval-buffer :which-key "eval buffer")
+  "er" '(eval-region :which-key "eval region"))
+#+END_SRC
+** Setting
+
+#+begin_src emacs-lisp
+
+(setq  org-directory dotfiles/orgmode-directory)
+#+end_src
+
+* Help
+** Keybindings
+   
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "h" '(:ignore t :which-key "help")
+  "hf" '(counsel-describe-function :which-key "Describe Function")
+  "hc" '(helpful-command :which-key "Describe Command")
+  "hv" '(counsel-describe-variable :which-key "Describe Variable")
+  "hk" '(helpful-key :which-key "Describe Key")
+  "hp" '(helpful-at-point :which-key "Describe at Point")
+  "hw" '(which-key-toggle-docstrings :which-key "which-key"))
+#+end_src
+** Helpful
+
+#+begin_src emacs-lisp
+(use-package helpful
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
+#+end_src
+
+* Git
+
+** Load Package
+#+begin_src emacs-lisp
+(use-package magit
+  :commands magit-status
+  :custom (magit-display-buffer-function
+           #'magit-display-buffer-same-window-except-diff-v1))
+#+end_src
+
+** Keybindings
+
+#+begin_src emacs-lisp
+(dotfiles/leader
+  "g" '(:ignore t :which-key "Magit")
+  "gc" '(magit-clone :which-key "Clone")
+  "gg" '(magit-status :which-key "Status"))
+#+end_src
+
+*  Development
+** LSP mode
+We use the excellent lsp-mode to enable IDE-like functionality for many different programming languages via “language servers” that speak the Language Server Protocol. Before trying to set up lsp-mode for a particular language, check out the documentation for your language so that you can learn which language servers are available and how to install them.
+
+The lsp-keymap-prefix setting enables you to define a prefix for where lsp-mode’s default keybindings will be added. I highly recommend using the prefix to find out what you can do with lsp-mode in a buffer.
+
+The which-key integration adds helpful descriptions of the various keys so you should be able to learn a lot just by pressing C-c l in a lsp-mode buffer and trying different things that you find there.
+#+begin_src emacs-lisp
+(defun efs/lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . efs/lsp-mode-setup)
+  :init
+  (setq lsp-keymap-prefix "C-c l")  ;; Or 'C-l', 's-l'
+  :config
+  (lsp-enable-which-key-integration t))
+#+end_src
+
+** lsp-ui
+#+begin_src emacs-lisp
+(use-package lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :config
+    (setq lsp-ui-sideline-enable t)
+    (setq lsp-ui-sideline-show-hover nil)
+    (setq lsp-ui-doc-position 'bottom)
+    (lsp-ui-doc-show))
+#+end_src
+
+** lsp-treemacs
+#+begin_src emacs-lisp
+(use-package lsp-treemacs
+  :after lsp)
+#+end_src
+
+** Emacs LSP
+
+#+begin_src emacs-lisp
+  (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
+
+  (dotfiles/leader
+    "e"   '(:ignore t :which-key "eval")
+    "eb"  '(eval-buffer :which-key "eval buffer"))
+
+
+    (dotfiles/leader
+    :keymaps '(visual)
+    "er" '(eval-region :which-key "eval region"))
+#+end_src
+#+begin_src emacs-lisp
+(use-package overseer
+    :defer t
+    :init (dotfiles/leader emacs-lisp-mode-map
+            "ta" '(overseer-test :which-key "overseer-test")
+            "tt" '(overseer-test-run-test :which-key "overseer-test-run-test")
+            "tb" '(overseer-test-this-buffer :which-key "overseer-test-this-buffer")
+            "tf" '(overseer-test-file :which-key "overseer-test-file")
+            "tg" '(overseer-test-tags :which-key "overseer-test-tags")
+            "tp" '(overseer-test-prompt :which-key "overseer-test-prompt")
+            "tA" '(overseer-test-debug :which-key "overseer-test-debug")
+            "tq" '(overseer-test-quiet :which-key "overseer-test-quiet")
+            "tv" '(overseer-test-verbose :which-key "overseer-test-verbose")
+            "th" '(overseer-help :which-key "overseer-help")))
+
+#+end_src
+
+* Spelling
+#+begin_src emacs-lisp
+  (use-package flyspell
+    :defer t
+    :diminish flyspell-mode
+    :init
+    (dotfiles/leader
+      "ts" '(flyspell-mode :which-key  "flyspell-mode")
+      "Sb" '(flyspell-buffer :which-key "flyspell-buffer")
+      "Sn" '(flyspell-goto-next-error :which-key "flyspell-goto-next-error")
+      "Sp" '(flyspell-correct-at-point) :which-key "flyspell-correct-at-point)")
+    (defhydra hydra-spelling ()
+      ("b" flyspell-buffer "check buffer")
+      ("d" ispell-change-dictionary "change dictionary")
+      ("n" flyspell-goto-next-error "next")
+      ("c" flyspell-correct-previous-word-generic "correct")
+      ("q" nil "quit"))
+    (dotfiles/leader
+      "M-s ." 'hydra-spelling/body)
+    :config
+    (progn
+      (add-hook 'prog-mode-hook #'flyspell-prog-mode)
+      (add-hook 'text-mode-hook #'turn-on-flyspell)
+      (add-hook 'org-mode-hook #'turn-on-flyspell)))
+#+end_src
+* Alerts
+#+begin_src emacs-lisp
+(use-package alert
+  :commands alert
+  :config
+  (setq alert-default-style 'notifications))
+#+end_src
+* Dashboard
+#+begin_src emacs-lisp
+       (use-package dashboard
+         :custom (dashboard-center-content t)
+                 (dashboard-set-init-info t)
+                 (dashboard-set-file-icons t)
+                 (dashboard-set-heading-icons t)
+                 (dashboard-set-navigator t)
+                 (dashboard-startup-banner 'logo)
+         ;;        (dashboard-projects-backend 'projectile)
+                 (dashboard-items '(
+       ;;(projects . 10)
+      (recents  . 10)
+    ;;(agenda . 10)
+  ))
+         :config (dashboard-setup-startup-hook))
+#+end_src
+* Dired
+#+begin_src emacs-lisp
+
+(dotfiles/leader
+  "ad" '(dired :which-key "Dired"))
+#+end_src
+* Calendar
+** org-gcal
+
+Set files list and tokens in the host specific file.
+
+#+begin_src emacs-lisp
+      (use-package org-gcal
+       :init (setq org-gcal-local-timezone "America/Chicago"))
+#+end_src
+
+* Search
+#+begin_src emacs-lisp
+  (dotfiles/leader
+    "sd" '(counsel-rg :which-key "rp-directory")
+    "sp" '(swiper-thing-at-point :which-key "swiper at point")
+    "ss" '(swiper :which-key "swiper"))
+
+#+end_src
+* Projectile
+** Setup
+ #+begin_src emacs-lisp
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/src")
+    (setq projectile-project-search-path '("~/src")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :after projectile
+  :config (counsel-projectile-mode))
+ #+end_src
+** Keybindings
+#+begin_src emacs-lisp
+  (dotfiles/leader
+  "pf"  '(counsel-projectile-find-file :which-key "counsel-projectile-find-file")
+  "ps"  '(counsel-projectile-switch-project :which-key "counsel-projectile-switch-project")
+  "pF"  '(counsel-projectile-rg :which-key "counsel-projectile-rg")
+  ;; "pF"  'consult-ripgrep
+  "pp"  '(counsel-projectile :which-key "counsel-projectile")
+  "pc"  '(projectile-compile-project :which-key "projectile-compile-project")
+  "pd"  '(projectile-dired :which-key "projectile-dired")
+)
+#+end_src
+* Next
+** TODO evil-surround
+** TODO  Popup selection frame
+
++ Display =ivy= completions in a popup buffer
++ Set ~parent-frame~ to =nil= for [[file:desktop.org][Desktop]] support
+
+#+begin_src emacs-lisp
+;; (use-package ivy-posframe
+;;   :after ivy
+;;   :when (window-system)
+;;   :custom (ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
+;;           (ivy-posframe-parameters '((parent-frame nil)))
+;;   :config (ivy-posframe-mode 1))
+#+end_src
+
+** TODO line numbering
+
+** TODO configure evil-redo
+   
+** TODO tab length
+* References
+** https://github.com/daviwil/emacs-from-scratch
+** https://github.com/daviwil/dotfiles/blob/master/Emacs.org
+** Example using literate and Spacemacs style keybindings 
+https://github.com/chayward1/dotf

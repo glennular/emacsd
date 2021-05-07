@@ -346,7 +346,7 @@ M-n put word at point into Swiper
       "S"  '(:ignore t :which-key "Spelling")
       "t"  '(:ignore t :which-key "Toggle")
 
-      "au" '(straight-pull-all :which-key "update straight")
+      "au" '(straight-pull-all :which-key "update pkgs")
 
       "td" '(toggle-debug-on-error :which-key "debug")
   )
@@ -480,8 +480,8 @@ Dired feels more modern with prioritized icon fonts using *All the Icons*[fn:3].
 Integration with the *All the Icons Dired*[fn:4]package.
 
 #+begin_src emacs-lisp
-;;(use-package all-the-icons-dired)
-;;(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+(use-package all-the-icons-dired)
+(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
 #+end_src
 
 ** Symbols
@@ -786,15 +786,13 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
 ** Evil
 #+begin_src emacs-lisp
   (use-package evil-org
-    :ensure t
+    :commands evil-org-mode
     :after org
-    :hook (org-mode . (lambda () evil-org-mode))
-    :config
-    (require 'evil-org-agenda)
-    (evil-org-agenda-set-keys)
-    (evil-org-set-key-theme '(textobjects insert navigation additional shift leader todo heading))
-
-  )
+    :init
+    (add-hook 'org-mode-hook 'evil-org-mode)
+    :config    (add-hook 'evil-org-mode-hook
+            (lambda ()
+              (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading)))))
 #+end_src
 ** Keybindings
 
@@ -807,10 +805,19 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
   "er" '(eval-region :which-key "eval region")
   "eb" '(org-babel-execute-src-block :which-key "eval babel")
   "m." '(counsel-org-goto :which-key "org-goto")
-  "mt" '(org-todo :which-key "todo")
+  "mA" '(org-archive-subtree :which-key "archieve subtree")
+  "md" '(:ignore t :which-key "dates")
+  "mdd" '(org-deadline :which-key "deadline")
+  "mds" '(org-schedule :which-key "schedule")
+  "mdt" '(org-timestamp :which-key "timestamp")
+  "mdT" '(org-timestamp-inactive :which-key "timestamp inactive")
   "mi" '(:ignore t :which-key "Insert")
   "mih" '(org-insert-heading-after-current :which-key "heading(after)")
-  "mit" '(org-insert-structure-template :which-key "template"))
+  "mit" '(org-insert-structure-template :which-key "template")
+  "mt" '(org-todo :which-key "todo")
+  "mT" '(org-todo-list :which-key "todo list")
+  "mx" '(org-toggle-checkboox :which-key "toggle checkbox"))
+
 
   (dotfiles/leader emacs-lisp-mode-map
   "eb" '(eval-buffer :which-key "eval buffer")

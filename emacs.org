@@ -281,22 +281,23 @@ M-n put word at point into Swiper
 ** Evil
 
 #+BEGIN_SRC emacs-lisp
-      (use-package evil
-        :custom (evil-want-integration t)  ;; Required for `evil-collection'.
-                (evil-want-keybinding nil) ;; Same as above
-        :config (evil-mode +1)
-        :init   (setq evil-undo-system 'undo-fu))
+        (use-package evil
+          :custom (evil-want-integration t)  ;; Required for `evil-collection'.
+                  (evil-want-keybinding nil) ;; Same as above
+          :config (evil-mode +1)
+          :init   (setq evil-undo-system 'undo-fu))
 
-    (use-package evil-collection
-    :after evil
-    :custom (evil-collection-setup-minibuffer t)
-    :init (evil-collection-init))
+      (use-package evil-collection
+      :after evil
+      :custom (evil-collection-setup-minibuffer t)
+      :init (evil-collection-init)
+            (setq evil-toggle-key "C-`"))
 
-    (use-package undo-fu
-      :config
-  ;;    (global-undo-tree-mode -1)
-      (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
-      (define-key evil-normal-state-map "\C-r" 'undo-fu-only-redo))
+      (use-package undo-fu
+        :config
+    ;;    (global-undo-tree-mode -1)
+        (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
+        (define-key evil-normal-state-map "\C-r" 'undo-fu-only-redo))
 
 #+END_SRC
 

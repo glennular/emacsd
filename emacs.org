@@ -69,7 +69,7 @@ private org setting should be in host config
 
 #+begin_src emacs-lisp
 
-  (defvar dotfiles/orgmode-directory "~/org/"
+  (defvar dotfiles/orgmode-directory "~/org"
       "location of org files")
 
 #+end_src
@@ -415,9 +415,12 @@ M-n put word at point into Swiper
   "wj" '(windmove-down :which-key "Down")
   "wk" '(windmove-up :which-key "Up")
   "wl" '(windmove-right :which-key "Right")
-  "ws" '(:ignore t :which-key "Split")
-  "wsj" '(split-window-below :which-key "Down")
-  "wsl" '(split-window-right :which-key "Right"))
+  "ws" '(split-window-below :which-key "split Down")
+  "wS" '(split-window-right :which-key "split Right")
+  "wH" '(evil-window-move-far-left :which-key "Left")
+  "wJ" '(evil-window-move-far-bottom :which-key "Down")
+  "wK" '(evil-window-move-far-top :which-key "Up")
+  "wL" '(evil-window-move-far-right :which-key "Right"))
 #+end_src
 
 
@@ -534,6 +537,10 @@ Gotta have those emojis, first class support for Emacs via the *Emacs-emojify*[f
 #+begin_src emacs-lisp
 (dotfiles/leader
   "i" '(:ignore t :which-key "insert")
+  "is" '(yas-insert-snippet :which-key "snippet")
+  "iu" '(insert-char :which-key "unicode")
+  "ir" '(counsel-evil-registers :which-key "register")
+  ;;"iy" '( :which-key "From Clipboard") ;;TODO
   "if" '(:ignore t :which-key "Emojify")
   "ifl" '(emojify-list-emojis :which-key "List")
   "ifs" '(emojify-apropos-emoji :which-key "Search")
@@ -786,21 +793,21 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
 
 ** Evil
 #+begin_src emacs-lisp
-  (use-package evil-org
-    :commands evil-org-mode
-    :after org
-    :init
-    (add-hook 'org-mode-hook 'evil-org-mode)
-    :config    (add-hook 'evil-org-mode-hook
-            (lambda ()
-              (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading)))))
+(use-package evil-org
+  :after org
+  :hook ((org-mode . evil-org-mode)
+         (org-agenda-mode . evil-org-mode)
+         (evil-org-mode . (lambda () (evil-org-set-key-theme '(navigation todo insert textobjects additional shift)))))
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
 #+end_src
 ** Keybindings
 
 #+BEGIN_SRC emacs-lisp
 
   (dotfiles/leader
-    "oa" '(org-agenda :which-key "agenda"))
+  "oa" '(org-agenda :which-key "agenda"))
 
   (dotfiles/leader org-mode-map
   "er" '(eval-region :which-key "eval region")
@@ -810,7 +817,7 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
   "md" '(:ignore t :which-key "dates")
   "mdd" '(org-deadline :which-key "deadline")
   "mds" '(org-schedule :which-key "schedule")
-  "mdt" '(org-timestamp :which-key "timestamp")
+  "mdt" '(org-time-stamp :which-key "timestamp")
   "mdT" '(org-timestamp-inactive :which-key "timestamp inactive")
   "mi" '(:ignore t :which-key "Insert")
   "mih" '(org-insert-heading-after-current :which-key "heading(after)")

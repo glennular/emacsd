@@ -74,6 +74,12 @@ private org setting should be in host config
 
 #+end_src
 
+** Hooks
+#+begin_src emacs-lisp
+
+(defvar dotfiles/end-hook nil
+  "Hook called at the end of the config for custome host configs")
+#+end_src
 * Per Host Config (Overrides)
 Must be ran after the config section
 These are host specific variables, plus all the private variables
@@ -314,7 +320,6 @@ M-n put word at point into Swiper
     :global-prefix dotfiles/leader-key-global))
 #+end_src
 
-
 ** Transient bindings
 + Defer loading for performance
 
@@ -422,7 +427,6 @@ M-n put word at point into Swiper
   "wK" '(evil-window-move-far-top :which-key "Up")
   "wL" '(evil-window-move-far-right :which-key "Right"))
 #+end_src
-
 
 * Interface
 ** Make the window modernized
@@ -598,8 +602,8 @@ Include full tree of the org location
 #+begin_src emacs-lisp
 (set-frame-parameter (selected-frame) 'alpha dotfiles/frame-transparency)
 (add-to-list 'default-frame-alist `(alpha . ,dotfiles/frame-transparency))
-(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+;;(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+;;(add-to-list 'default-frame-alist '(fullscreen . maximized))
 #+end_src
 
 ** Parentheses
@@ -822,6 +826,7 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
   "mi" '(:ignore t :which-key "Insert")
   "mih" '(org-insert-heading-after-current :which-key "heading(after)")
   "mit" '(org-insert-structure-template :which-key "template")
+  "mr" '(org-refile :which-key "refile")
   "mt" '(org-todo :which-key "todo")
   "mT" '(org-todo-list :which-key "todo list")
   "mx" '(org-toggle-checkboox :which-key "toggle checkbox"))
@@ -829,6 +834,7 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
 
   (dotfiles/leader emacs-lisp-mode-map
   "eb" '(eval-buffer :which-key "eval buffer")
+  "ee" '(eval-last-sexp :which-key "eval exp")
   "er" '(eval-region :which-key "eval region"))
 #+END_SRC
 ** Setting
@@ -841,6 +847,7 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
 *** Allow refiling to top level header
 #+begin_src emacs-lisp
 (setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps 'nil)
 #+end_src
 
 * Help
@@ -934,7 +941,8 @@ The which-key integration adds helpful descriptions of the various keys so you s
 
   (dotfiles/leader
     "e"   '(:ignore t :which-key "eval")
-    "eb"  '(eval-buffer :which-key "eval buffer"))
+    "eb"  '(eval-buffer :which-key "eval buffer")
+    "ee" '(eval-last-sexp :which-key "eval exp"))
 
 
     (dotfiles/leader
@@ -959,6 +967,7 @@ The which-key integration adds helpful descriptions of the various keys so you s
 #+end_src
 
 * Spelling
+** Flyspell
 #+begin_src emacs-lisp
   (use-package flyspell
     :defer t
@@ -976,12 +985,24 @@ The which-key integration adds helpful descriptions of the various keys so you s
       ("c" flyspell-correct-previous-word-generic "correct")
       ("q" nil "quit"))
     (dotfiles/leader
-      "M-s ." 'hydra-spelling/body)
+      "Ss" 'hydra-spelling/body)
     :config
     (progn
       (add-hook 'prog-mode-hook #'flyspell-prog-mode)
       (add-hook 'text-mode-hook #'turn-on-flyspell)
       (add-hook 'org-mode-hook #'turn-on-flyspell)))
+#+end_src
+** Flyspell w/ Ivy
+#+begin_src emacs-lisp
+(use-package flyspell-correct
+  :after flyspell
+  :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+(use-package flyspell-correct-ivy
+  :after flyspell-correct)
+  
+(use-package flyspell-correct-popup
+  :after flyspell-correct)
 #+end_src
 * Alerts
 #+begin_src emacs-lisp
@@ -1061,6 +1082,11 @@ Set files list and tokens in the host specific file.
   "pc"  '(projectile-compile-project :which-key "projectile-compile-project")
   "pd"  '(projectile-dired :which-key "projectile-dired")
 )
+#+end_src
+
+* End hook
+#+begin_src emacs-lisp
+(run-hooks 'dotfiles/end-hook)
 #+end_src
 * Next
 ** TODO evil-surround

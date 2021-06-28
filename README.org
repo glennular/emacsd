@@ -7,7 +7,14 @@ This is my Emacs config from scratch after using both [[https://github.com/syl20
    Found at [[file:emacs.org][./emacs.org]]
 *** Spacemacs style keybindings
     Based on the =SPC= leader key with [[https://github.com/justbur/emacs-which-key][which-key]]
+*  Prerequisites
+** Install Fira Code Font
+https://github.com/tonsky/FiraCode/wiki/Installing
+** Install cantarell font
+Ubuntu:  `apt-get install fonts-cantarell`
 
+** Post Install
+Install Emojis
 
 * References:
 - Emacs from scratch:

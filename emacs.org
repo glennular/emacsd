@@ -203,6 +203,7 @@ Trying out =straight.el= for package management.  So far so good!
 #+begin_src emacs-lisp
   (use-package ivy
     :diminish
+    :after evil
     :bind (("C-s" . swiper)
            :map ivy-minibuffer-map
            ("TAB" . ivy-alt-done)
@@ -222,7 +223,8 @@ Trying out =straight.el= for package management.  So far so good!
     (ivy-mode 1)
     :config
     (setq ivy-use-virtual-buffers t)
-
+    (evil-define-key 'insert ivy-minibuffer-map (kbd "C-k") 'ivy-previous-line)
+    (evil-define-key 'insert ivy-switch-buffer-map (kbd "c-d") 'ivy-switch-buffer-kill)
     )
 #+end_src
 
@@ -594,9 +596,9 @@ Include full tree of the org location
   (defun org-which-function ()
     (interactive)
     (when (eq major-mode 'org-mode)
-      (org-display-outline-path nil t ">" t)
+      (org-display-outline-path)
+      ;;(org-display-outline-path nil t ">" t)
       ))
-  ;;(setq header-line-format '(:eval (org-display-outline-path)))
 
   (add-to-list 'which-func-functions #'org-which-function)
 #+end_src

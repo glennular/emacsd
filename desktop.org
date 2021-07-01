@@ -4,39 +4,51 @@
   (message "running desktop.el")
 #+end_src
 
+* Overview
+exwm set up is based off the following styles:
+
+** i3 keybindings - https://i3wm.org/docs/refcard.htm
+** Spacemacs exwm port - https://github.com/timor/spacemacsOS
+** System Craters - David Wilson  https://config.daviwil.com/desktop
+
 * Window Management
 
+** Variables
+#+begin_src emacs-lisp
+  (defvar exwm-buffer-name-prefix "X:"
+    "A prefix to append to each buffer managed by exwm")
+  (defvar exwm-app-launcher--prompt "$ "
+    "Prompt for the EXWM application launcher")
+  (defvar exwm-toggle-workspace 1
+    "Previously selected workspace. Used with `my/exwm-jump-to-last-exwm'.")
+#+end_src
 ** functions
 #+begin_src emacs-lisp
   (defun my/run-in-background (command)
     (let ((command-parts (split-string command "[ ]+")))
-      (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))))
+      (condition-case ex
+          (apply #'call-process `(,(car command-parts) nil 0 nil ,@(cdr command-parts)))
+        ('error (message (format "ERROR: Cannot start process: %s" ex)))
+        )))
 
   (defun my/exwm-jump-to-last-exwm ()
     (interactive)
     (exwm-workspace-switch exwm-toggle-workspace))
 
-  (defun my/exwm-update-class ()
-    (exwm-workspace-rename-buffer exwm-class-name))
-
-  (defun my/exwm-update-title ()
-    (pcase exwm-class-name
-      ("Firefox" (exwm-workspace-rename-buffer (format "Firefox: %s" exwm-title)))))
-
-  ;; This function isn't currently used, only serves as an example how to
-  ;; position a window
-  (defun my/position-window ()
-    (let* ((pos (frame-position))
-           (pos-x (car pos))
-           (pos-y (cdr pos)))
-
-      (exwm-floating-move (- pos-x) (- pos-y))))
+  (defun my/exwm-rename-buffer ()
+    (let* ((part1 exwm-class-name)
+           (part2 (when (not (string-equal exwm-class-name exwm-title))
+                    (concat "/" exwm-title)))
+           (name (concat exwm-buffer-name-prefix part1 (or part2 "")))
+           (maxlen 40))
+      (exwm-workspace-rename-buffer (if (> (length name) maxlen)
+                                        (concat (cl-subseq name 0 (- maxlen 3)) "...")
+                                      name))))
 
   (defun my/configure-window-by-class ()
     (interactive)
     (pcase exwm-class-name
-      ("Firefox" (exwm-workspace-move-window 2))
-      ("Sol" (exwm-workspace-move-window 3))
+      ;;("Firefox" (exwm-workspace-move-window 2))
       ("mpv" (exwm-floating-toggle-floating)
        (exwm-layout-toggle-mode-line))))
 
@@ -122,26 +134,19 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
 *NOTE:* Make sure you've installed =nm-applet=, =pasystray= and =blueman= for the system tray apps to work!
 
 #+begin_src emacs-lisp
-
   (use-package exwm
     :config
-    ;; Set the default number of workspaces
-    (setq exwm-workspace-number 5)
+    ;;(setq exwm-workspace-number 5)
 
-    ;; When window "class" updates, use it to set the buffer name
-    (add-hook 'exwm-update-class-hook #'my/exwm-update-class)
-
-    ;; When window title updates, use it to set the buffer name
-    (add-hook 'exwm-update-title-hook #'my/exwm-update-title)
+    (add-hook 'exwm-update-class-hook #'my/exwm-rename-buffer)
+    (add-hook 'exwm-update-title-hook #'my/exwm-rename-buffer)
 
     ;; Configure windows as they're created
     (add-hook 'exwm-manage-finish-hook #'my/configure-window-by-class)
+    (add-hook 'exwm-manage-finish-hook 'my/exwm-enter-insert-state)
 
     ;; When EXWM starts up, do some extra confifuration
     (add-hook 'exwm-init-hook #'my/exwm-init-hook)
-
-    ;; Rebind CapsLock to Ctrl
-    ;;   (start-process-shell-command "xmodmap" nil "xmodmap ~/.emacs.d/exwm/Xmodmap")
 
     ;; NOTE: Uncomment the following two options if you want window buffers
     ;;       to be available on all workspaces!

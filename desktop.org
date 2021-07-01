@@ -872,5 +872,5 @@ We can also set up some functions for enabling and disabling notifications at an
 Tangle on save? Reload after tangle? These hooks will ask you after every save.
 
 ;; Local Variables:
-;; eval: (add-hook 'after-save-hook (lambda ()(if (y-or-n-p "Tangle?")(org-babel-tangle))) nil t)
+;; eval: (add-hook 'after-save-hook (lambda ()(org-babel-tangle)) nil t)
 ;; End:

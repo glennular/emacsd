@@ -197,7 +197,6 @@ Trying out =straight.el= for package management.  So far so good!
 #+end_src
 
 * Editor
-
 ** Selection menu
 
 #+begin_src emacs-lisp
@@ -392,6 +391,7 @@ M-n put word at point into Swiper
     "f"  '(:ignore t :which-key "file")
     "fd" '((lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/emacs.org"))) :which-key "dotfile" )
     "ff"  '(find-file :which-key "find file")
+    "fF"  '(counsel-locate :which-key "global find")
     "fj"  '(counsel-file-jump :which-key "jump to file")
     "fr"  '(counsel-recentf :which-key "recent")
     "fR"  '(revert-buffer :which-key "revert file")

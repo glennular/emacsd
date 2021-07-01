@@ -464,6 +464,11 @@ Check out the Polybar wiki for more details on how to configure it: https://gith
     (my/kill-panel)
     (setq my/polybar-process (start-process-shell-command "polybar" nil "polybar -r panel")))
 
+  (defun my/reload-panel ()
+    (interactive)
+    (my/kill-panel)
+    (my/start-panel))
+
   (defun my/send-polybar-hook (module-name hook-index)
     (start-process-shell-command "polybar-msg" nil (format "polybar-msg hook %s %s" module-name hook-index)))
 

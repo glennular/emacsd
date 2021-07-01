@@ -105,7 +105,54 @@ exwm set up is based off the following styles:
     (interactive)
     ;; NOTE: You will need to update this to a valid background path!
     (start-process-shell-command
-        "feh" nil  "feh --bg-scale ~/Pictures/bg-metal.png"))
+     "feh" nil  "feh --bg-scale ~/Pictures/bg-metal.png"))
+#+end_src
+
+** Launcher
+Use counsel-linux-app but wrap with split functions
+#+begin_src emacs-lisp
+
+  (defun my/counsel-linux-app-action-split(desktop-shortcut)
+    (my/window-split-and-follow)
+    (counsel-linux-app-action-default desktop-shortcut))
+  (defun my/counsel-linux-app-action-vsplit(desktop-shortcut)
+    (my/window-vsplit-and-follow)
+    (counsel-linux-app-action-default desktop-shortcut))
+
+;;TODO refactor these to a single function
+
+  (defun my/counsel-linux-app-split (&optional arg)
+    (interactive "P")
+    (ivy-read "(Below)Run application: " (counsel-linux-apps-list)
+              :predicate (unless arg (lambda (x) (get-text-property 0 'visible (car x))))
+              :action #'my/counsel-linux-app-action-split
+              :caller 'my/counsel-linux-app-split))
+              :sort t
+
+  (defun my/counsel-linux-app-vsplit (&optional arg)
+    (interactive "P")
+    (ivy-read "(Right) Run application: " (counsel-linux-apps-list)
+              :predicate (unless arg (lambda (x) (get-text-property 0 'visible (car x))))
+              :action #'my/counsel-linux-app-action-vsplit
+              :caller 'my/counsel-linux-app-vsplit))
+              :sort t
+
+  (defun my/counsel-linux-app (&optional arg)
+    (interactive "P")
+    (ivy-read "(Buffer)Run application : " (counsel-linux-apps-list)
+              :predicate (unless arg (lambda (x) (get-text-property 0 'visible (car x))))
+              :action #'counsel-linux-app-action-default
+              :caller 'my/counsel-linux-app))
+              :sort t
+
+#+end_src
+** Screen resolution
+#+begin_src emacs-lisp
+  (defun my/update-displays ()
+    (shell-command-to-string "autorandr --change --force")
+    (my/set-wallpaper)
+    (message "Display config: %s"
+             (string-trim (shell-command-to-string "autorandr --current"))))
 #+end_src
 
 ** Startup
@@ -114,18 +161,13 @@ exwm set up is based off the following styles:
     ;; Make workspace 1 be the one where we land at startup
     (exwm-workspace-switch-create 1)
 
-    ;; Open eshell by default
-    ;;(eshell)
+    ;; Open dashboard by default
+    (dashboard-refresh-buffer)
 
     ;; NOTE: The next two are disabled because we now use Polybar!
-
-    ;; Show battery status in the mode line
     ;;(display-battery-mode 1)
-
-    ;; Show the time and date in modeline
     ;;(setq display-time-day-and-date t)
     ;;(display-time-mode 1)
-    ;; Also take a look at display-time-format and format-time-string
 
     ;; Start the Polybar panel
     (my/start-panel)
@@ -133,8 +175,9 @@ exwm set up is based off the following styles:
     ;; Launch apps that will run in the background
     (my/run-in-background "dunst")
     (my/run-in-background "nm-applet")
-    ;;    (my/run-in-background "pasystray")
-    ;;    (my/run-in-background "blueberry-tray")
+    (my/run-in-background "barrier")
+    (my/run-in-background "pasystray")
+    (my/run-in-background "blueberry-tray")
     )
 #+end_src
 ** EXWM Configuration
@@ -172,9 +215,9 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
     ;;(setq exwm-workspace-minibuffer-position 'top)
 
     ;; Set the screen resolution (update this to be the correct resolution for your screen!)
-    ;;    (require 'exwm-randr)
-    ;;    (exwm-randr-enable)
-    ;;    (start-process-shell-command "xrandr" nil "xrandr --output Virtual-1 --primary --mode 2048x1152 --pos 0x0 --rotate normal")
+    (require 'exwm-randr)
+    (exwm-randr-enable)
+    ;;(start-process-shell-command "xrandr" nil "xrandr --output Virtual-1 --primary --mode 2048x1152 --pos 0x0 --rotate normal")
 
     ;; This will need to be updated to the name of a display!  You can find
     ;; the names of your displays by looking at arandr or the output of xrandr
@@ -183,7 +226,7 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
     ;; NOTE: Uncomment these lines after setting up autorandr!
     ;; React to display connectivity changes, do initial display update
     ;; (add-hook 'exwm-randr-screen-change-hook #'my/update-displays)
-    ;; (my/update-displays)
+    (my/update-displays)
 
     ;; Set the wallpaper after changing the resolution
     (my/set-wallpaper)
@@ -201,19 +244,23 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
     (setq mouse-autoselect-window t
           focus-follows-mouse t)
 
+    ;; Quick swtiching between workspaces
+    (defadvice exwm-workspace-switch (before save-toggle-workspace activate)
+      (setq exwm-toggle-workspace exwm-workspace-current-index))
+
     ;; These keys should always pass through to Emacs
     (setq exwm-input-prefix-keys
-          '(?\C-x
-            ?\C-u
-            ?\C-h
-            ?\M-x
-            ?\M-`
-            ?\M-&
-            ?\M-:
-            ?\C-\M-j  ;; Buffer list
-            ?\C-\ ))  ;; Ctrl+Space
+    ;;       '(?\C-x
+    ;;         ?\C-u
+    ;;         ?\C-h
+    ;;         ?\M-x
+    ;;         ?\M-`
+    ;;         ?\M-&
+    ;;         ?\M-:
+    ;;         ?\C-\M-j  ;; Buffer list
+             '(?\C-\ ))  ;; Ctrl+Space
 
-    ;; Ctrl+Q will enable the next key to be sent directly
+    ;; ;; Ctrl+Q will enable the next key to be sent directly
     (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
 
     ;; Set up global key bindings.  These always work, no matter the input state!
@@ -228,26 +275,14 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
             ([s-right] . windmove-right)
             ([s-up] . windmove-up)
             ([s-down] . windmove-down)
-
-            ;; Undo window configurations
-            ([s-u] . winner-undo)
-            ([s-U] . winner-redo)
-            ;; Change buffers
-            ([s-b] . switch-to-buffer)
-            ;; Focusing windows
-            ([s-h] . windmove-left)
-            ([s-j] . windmove-down)
-            ([s-k] . windmove-up)
-            ([s-l] . windmove-right)
-
-            ;;  ;; Launch applications via shell command
-            ([s-d] . councel-linux-app)
+            ([?\s-f] . exwm-layout-toggle-fullscreen)
+            ([?\s-F] . exwm-floating-toggle-floating)
             ([?\s-&] . (lambda (command)
                          (interactive (list (read-shell-command "$ ")))
                          (start-process-shell-command command nil command)))
 
             ;; Switch workspace
-            ([?\s-w] . exwm-workspace-switch)
+            ;;      ([?\s-w] . exwm-workspace-switch)
 
             ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
             ,@(mapcar (lambda (i)
@@ -257,8 +292,6 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
                             (exwm-workspace-switch-create ,i))))
                       (number-sequence 0 9))))
 
-    (exwm-input-set-key (kbd "s-SPC") 'counsel-linux-app)
-    (exwm-input-set-key (kbd "s-d") 'counsel-linux-app)
     (exwm-input-set-key (kbd "s-b") 'exwm-workspace-switch-to-buffer)
     (setq exwm-workspace-show-all-buffers 1)
     (setq exwm-layout-show-all-buffers t)
@@ -267,9 +300,53 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
     (exwm-input-set-key (kbd "s-c") 'my/exwm-enter-char-mode)
     (exwm-input-set-key (kbd "<s-tab>") 'my/exwm-jump-to-last-exwm)
 
+    (exwm-input-set-key (kbd "s-h") 'evil-window-left)
+    (exwm-input-set-key (kbd "s-j") 'evil-window-down)
+    (exwm-input-set-key (kbd "s-k") 'evil-window-up)
+    (exwm-input-set-key (kbd "s-l") 'evil-window-right)
+    ;; Moving Windows
+    (exwm-input-set-key (kbd "s-H") 'evil-window-move-far-left)
+    (exwm-input-set-key (kbd "s-J") 'evil-window-move-very-bottom)
+    (exwm-input-set-key (kbd "s-K") 'evil-window-move-very-top)
+    (exwm-input-set-key (kbd "s-L") 'evil-window-move-far-right)
+
+    (exwm-input-set-key (kbd "s-d") 'my/counsel-linux-app)
+    (exwm-input-set-key (kbd "s-s") 'my/counsel-linux-app-split)
+    (exwm-input-set-key (kbd "s-S") 'my/counsel-linux-app-vsplit)
+
+    ;; in normal state/line mode, use the familiar i key to switch to input state
+    ;; (evil-define-key 'normal exwm-mode-map (kbd "i") 'exwm-input-release-keyboard)
+    (evil-define-key 'normal exwm-mode-map (kbd "i") 'my/exwm-enter-insert-state)
+    (dolist (k '("<down-mouse-1>" "<down-mouse-2>" "<down-mouse-3>"))
+      (evil-define-key 'normal exwm-mode-map (kbd k) 'my/exwm-enter-insert-state))
+
+    ;; EXWM does not bypass exwm-mode-map keybindings in line-mode, so the
+    ;; default bindings are still mapped to C-c.  We remap that to C-s-c.
+
+    (define-key exwm-mode-map (kbd "C-s-c") (lookup-key exwm-mode-map (kbd "C-c")))
+    (define-key exwm-mode-map (kbd "C-c") nil)
+
+    ;; User s-q to close buffer
+    (exwm-input-set-key (kbd "s-Q") 'kill-buffer-and-window)
 
     (exwm-enable))
+#+end_src
+** Terminal here
+#+begin_src emacs-lisp
+  (use-package terminal-here
+    :after exwm
+    :config
+    (setq terminal-here-linux-terminal-command 'xfce4-terminal)
+    (exwm-input-set-key (kbd "<s-return>") 'terminal-here-launch))
+#+end_src
 
+** Keybindings
+#+begin_src emacs-lisp
+  (my/leader exwm-map
+    "d" '(exwm-debug :which-key "togggle debug")
+    "f" '(exwm-floating-toggle-floating :which-key "togggle floating")
+    "m" '(exwm-workspace-move-window :which-key "workspace move window")
+    "F" '(exwm-floating-toggle-floating :which-key "togggle fullscreen"))
 #+end_src
 * Desktop Environment
 

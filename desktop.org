@@ -201,7 +201,7 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
 
     ;; Configure windows as they're created
     (add-hook 'exwm-manage-finish-hook #'my/configure-window-by-class)
-    (add-hook 'exwm-manage-finish-hook 'my/exwm-enter-insert-state)
+    ;;(add-hook 'exwm-manage-finish-hook 'my/exwm-enter-insert-state)
 
     ;; When EXWM starts up, do some extra confifuration
     (add-hook 'exwm-init-hook #'my/exwm-init-hook)
@@ -328,7 +328,6 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
 
     ;; EXWM does not bypass exwm-mode-map keybindings in line-mode, so the
     ;; default bindings are still mapped to C-c.  We remap that to C-s-c.
-
     (define-key exwm-mode-map (kbd "C-s-c") (lookup-key exwm-mode-map (kbd "C-c")))
     (define-key exwm-mode-map (kbd "C-c") nil)
 
@@ -453,7 +452,7 @@ Check out the Polybar wiki for more details on how to configure it: https://gith
 #+begin_src emacs-lisp
 
   ;; Make sure the server is started (better to do this in your main Emacs config!)
-  (server-start)
+  ;;(server-start)
 
   (defvar my/polybar-process nil
     "Holds the process of the running Polybar instance, if any")
@@ -469,11 +468,6 @@ Check out the Polybar wiki for more details on how to configure it: https://gith
     (interactive)
     (my/kill-panel)
     (setq my/polybar-process (start-process-shell-command "polybar" nil "polybar -r panel")))
-
-  (defun my/reload-panel ()
-    (interactive)
-    (my/kill-panel)
-    (my/start-panel))
 
   (defun my/send-polybar-hook (module-name hook-index)
     (start-process-shell-command "polybar-msg" nil (format "polybar-msg hook %s %s" module-name hook-index)))

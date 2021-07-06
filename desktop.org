@@ -361,15 +361,16 @@ We use the [[https://github.com/DamienCassou/desktop-environment][desktop-enviro
 
 #+begin_src emacs-lisp
 
-  (use-package desktop-environment
-    :after exwm
-    :config (desktop-environment-mode)
-    :custom
-    (desktop-environment-brightness-small-increment "2%+")
-    (desktop-environment-brightness-small-decrement "2%-")
-    (desktop-environment-brightness-normal-increment "5%+")
-    (desktop-environment-brightness-normal-decrement "5%-"))
-
+    (use-package desktop-environment
+      :after exwm
+      :config (desktop-environment-mode)
+      :custom
+      (desktop-environment-brightness-small-increment "-inc 5")
+      (desktop-environment-brightness-small-decrement "-dec 5")
+      (desktop-environment-brightness-normal-increment "-inc 10")
+      (desktop-environment-brightness-normal-decrement "-dec 10")
+      (desktop-environment-brightness-get-command "xbacklight")
+      (desktop-environment-brightness-set-command "xbacklight %s"))
 #+end_src
 
 ** Desktop File

@@ -417,7 +417,9 @@ This launcher script is invoked by =EXWM.desktop= to start Emacs and load our de
   xss-lock ~/bin/lock.sh &
 
   # Fire it up
-  exec dbus-launch --exit-with-session emacs -mm --debug-init -l ~/.emacs.d/desktop.el
+  ##exec dbus-launch --exit-with-session emacs -mm --debug-init -l ~/.emacs.d/desktop.el
+  # on Arch dbus is launched by systemd, launching emacs directly
+  exec emacs -mm --debug-init -l ~/.emacs.d/desktop.el
 
 #+end_src
 

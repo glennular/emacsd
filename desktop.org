@@ -155,6 +155,11 @@ Use counsel-linux-app but wrap with split functions
              (string-trim (shell-command-to-string "autorandr --current"))))
 #+end_src
 
+** Lock
+#+begin_src emacs-lisp
+  (defun my/lock-screen ()
+    (my/run-in-background "~/bin/lock.sh")) 
+#+end_src
 ** Startup
 #+begin_src emacs-lisp
   (defun my/exwm-init-hook ()
@@ -298,6 +303,7 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
 
     (exwm-input-set-key (kbd "s-<escape>") 'my/exwm-escape)
     (exwm-input-set-key (kbd "s-c") 'my/exwm-enter-char-mode)
+    (exwm-input-set-key (kbd "s-.") 'my/lock-screen)
     (exwm-input-set-key (kbd "<s-tab>") 'my/exwm-jump-to-last-exwm)
 
     (exwm-input-set-key (kbd "s-h") 'evil-window-left)

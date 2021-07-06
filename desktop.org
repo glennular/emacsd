@@ -183,6 +183,7 @@ Use counsel-linux-app but wrap with split functions
     (my/run-in-background "barrier")
     (my/run-in-background "pasystray")
     (my/run-in-background "blueberry-tray")
+    (my/run-in-background "dropbox")
     )
 #+end_src
 ** EXWM Configuration
@@ -413,7 +414,7 @@ This launcher script is invoked by =EXWM.desktop= to start Emacs and load our de
   compton &
 
   # Enable screen locking on suspend
-  xss-lock -- slock &
+  xss-lock ~/bin/lock.sh &
 
   # Fire it up
   exec dbus-launch --exit-with-session emacs -mm --debug-init -l ~/.emacs.d/desktop.el

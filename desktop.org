@@ -158,6 +158,7 @@ Use counsel-linux-app but wrap with split functions
 ** Lock
 #+begin_src emacs-lisp
   (defun my/lock-screen ()
+    (interactive)
     (my/run-in-background "~/bin/lock.sh")) 
 #+end_src
 ** Startup
@@ -195,6 +196,7 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
 #+begin_src emacs-lisp
   (use-package exwm
     :config
+    (setq exwm-layout-auto-iconify t)
     ;;(setq exwm-workspace-number 5)
 
     (add-hook 'exwm-update-class-hook #'my/exwm-rename-buffer)
@@ -291,12 +293,27 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
             ;;      ([?\s-w] . exwm-workspace-switch)
 
             ;; 's-N': Switch to certain workspace with Super (Win) plus a number key (0 - 9)
+                ;; s-N for current workspace will switch to the last workspace
             ,@(mapcar (lambda (i)
                         `(,(kbd (format "s-%d" i)) .
                           (lambda ()
                             (interactive)
-                            (exwm-workspace-switch-create ,i))))
-                      (number-sequence 0 9))))
+                            (if (= ,i exwm-workspace-current-index)
+                              (my/exwm-jump-to-last-exwm)
+                              (exwm-workspace-switch-create ,i)))))
+                      (number-sequence 0 9))
+            ;; 'S-s-N': Move window to a certain workspace.
+            ,@(cl-mapcar (lambda (c n)
+                       `(,(kbd (format "s-%c" c)) .
+                         (lambda ()
+                           (interactive)
+                           (exwm-workspace-move-window ,n)
+                           ;;(exwm-workspace-switch ,n)
+                         )))
+                     '(?\) ?! ?@ ?# ?$ ?% ?^ ?& ?* ?\()
+                     ;; '(?\= ?! ?\" ?# ?¤ ?% ?& ?/ ?\( ?\))
+                     (number-sequence 0 9))
+          ))
 
     (exwm-input-set-key (kbd "s-b") 'exwm-workspace-switch-to-buffer)
     (setq exwm-workspace-show-all-buffers 1)
@@ -305,7 +322,9 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
     (exwm-input-set-key (kbd "s-<escape>") 'my/exwm-escape)
     (exwm-input-set-key (kbd "s-c") 'my/exwm-enter-char-mode)
     (exwm-input-set-key (kbd "s-.") 'my/lock-screen)
-    (exwm-input-set-key (kbd "<s-tab>") 'my/exwm-jump-to-last-exwm)
+    ;;(exwm-input-set-key (kbd "<s-tab>") 'my/exwm-jump-to-last-exwm)
+    (exwm-input-set-key (kbd "<s-tab>") 'previous-buffer) 
+    (exwm-input-set-key (kbd "<s-iso-lefttab>") 'next-buffer) ;; (super-shift-tab)
 
     (exwm-input-set-key (kbd "s-h") 'evil-window-left)
     (exwm-input-set-key (kbd "s-j") 'evil-window-down)
@@ -371,7 +390,10 @@ We use the [[https://github.com/DamienCassou/desktop-environment][desktop-enviro
       (desktop-environment-brightness-normal-increment "-inc 10")
       (desktop-environment-brightness-normal-decrement "-dec 10")
       (desktop-environment-brightness-get-command "xbacklight")
-      (desktop-environment-brightness-set-command "xbacklight %s"))
+      (desktop-environment-brightness-set-command "xbacklight %s")
+    ;;reset back 
+   (exwm-input-set-key (kbd "s-l") 'evil-window-right)
+)
 #+end_src
 
 ** Desktop File

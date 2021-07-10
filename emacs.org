@@ -363,16 +363,21 @@ M-n put word at point into Swiper
 
 ** Buffer
 #+begin_src emacs-lisp
+  (defun my/kill-buffer ()
+    (interactive)
+    (kill-buffer nil)) 
+
   (my/leader
     "," '(counsel-switch-buffer :which-key "Buffers")
     "SPC"  '(counsel-M-x :which-key "M-x")
     "bb"  '(ivy-switch-buffer :which-key "list")
     "bB"  '(ivy-switch-buffer-other-window :which-key "list +other win")
-    "bd"  '(evil-delete-buffer :which-key "delete")
+    "bd"  '(my/kill-buffer :which-key "delete")
+    "bD"  '(evil-delete-buffer :which-key "delete + windows")
     "bl"  '(evil-switch-to-windows-last-buffer :which-key "last")
     "bm"  '(exit-minibuffer :which-key "exit-mini")
     "bn"  '(next-buffer :which-key "next")
-    "bp"  '(previous-minibuffer :which-key "prev")
+    "bp"  '(previous-buffer :which-key "prev")
     "br"  '(counsel-buffer-or-recentf  :which-key "recent"))
 #+end_src
 
@@ -1065,7 +1070,7 @@ The which-key integration adds helpful descriptions of the various keys so you s
     (dashboard-items '(
                        ;;(projects . 10)
                        (recents  . 10)
-                       ;;(agenda . 10)
+                       (agenda . 10)
                        ))
     :config (dashboard-setup-startup-hook))
 #+end_src

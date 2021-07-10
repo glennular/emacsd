@@ -8,7 +8,7 @@ This is my Emacs config from scratch after using both [[https://github.com/syl20
 *** Spacemacs style keybindings
     Based on the =SPC= leader key with [[https://github.com/justbur/emacs-which-key][which-key]]
 *** EXWM Desktop
-   EXWM configured via ./desktop.org
+   EXWM configured via [[file:desktop.org][./desktop.org]]
    Based on i3wm + spacemacOS bindings
 *  Prerequisites
 ** Install Fira Code Font

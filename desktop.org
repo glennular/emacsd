@@ -7,9 +7,9 @@
 * Overview
 exwm set up is based off the following styles:
 
-** i3 keybindings - https://i3wm.org/docs/refcard.htm
-** Spacemacs exwm port - https://github.com/timor/spacemacsOS
-** System Craters - David Wilson  https://config.daviwil.com/desktop
+- i3 keybindings - https://i3wm.org/docs/refcard.htm
+- Spacemacs exwm port - https://github.com/timor/spacemacsOS
+- System Craters - David Wilson  https://config.daviwil.com/desktop
 
 * Window Management
 
@@ -380,20 +380,24 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
 We use the [[https://github.com/DamienCassou/desktop-environment][desktop-environment]] package to automatically bind to well-known programs for controlling the volume, screen brightness, media playback, and doing other things like locking the screen and taking screenshots.  Make sure that you install the necessary programs to make this functionality work!  Check the [[https://github.com/DamienCassou/desktop-environment#default-configuration][default programs]] list to know what you need to install.
 
 #+begin_src emacs-lisp
-
-    (use-package desktop-environment
-      :after exwm
-      :config (desktop-environment-mode)
-      :custom
-      (desktop-environment-brightness-small-increment "-inc 5")
-      (desktop-environment-brightness-small-decrement "-dec 5")
-      (desktop-environment-brightness-normal-increment "-inc 10")
-      (desktop-environment-brightness-normal-decrement "-dec 10")
-      (desktop-environment-brightness-get-command "xbacklight")
-      (desktop-environment-brightness-set-command "xbacklight %s")
-    ;;reset back 
-   (exwm-input-set-key (kbd "s-l") 'evil-window-right)
-)
+  (use-package desktop-environment
+    :after exwm
+    :config
+    (progn
+      (setq desktop-environment-update-exwm-global-keys :prefix)
+      (define-key desktop-environment-mode-map (kbd "s-l") nil) ;; used as move left not lock
+      ;; If we don't enable this, exwm/switch-to-buffer-or-run won't move an X window to the current frame
+      (setq exwm-layout-show-all-buffers t)
+      (desktop-environment-mode)
+      )
+    :custom
+    (desktop-environment-brightness-small-increment "-inc 5")
+    (desktop-environment-brightness-small-decrement "-dec 5")
+    (desktop-environment-brightness-normal-increment "-inc 10")
+    (desktop-environment-brightness-normal-decrement "-dec 10")
+    (desktop-environment-brightness-get-command "xbacklight")
+    (desktop-environment-brightness-set-command "xbacklight %s")
+    )
 #+end_src
 
 ** Desktop File

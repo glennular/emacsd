@@ -336,9 +336,13 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
     (exwm-input-set-key (kbd "s-K") 'evil-window-move-very-top)
     (exwm-input-set-key (kbd "s-L") 'evil-window-move-far-right)
 
+    (exwm-input-set-key (kbd "s-W") 'delete-window)
+
     (exwm-input-set-key (kbd "s-d") 'my/counsel-linux-app)
     (exwm-input-set-key (kbd "s-s") 'my/counsel-linux-app-split)
     (exwm-input-set-key (kbd "s-S") 'my/counsel-linux-app-vsplit)
+
+    (exwm-input-set-key (kbd "s-C-x") 'my/exwm-org-capture)
 
     ;; in normal state/line mode, use the familiar i key to switch to input state
     ;; (evil-define-key 'normal exwm-mode-map (kbd "i") 'exwm-input-release-keyboard)

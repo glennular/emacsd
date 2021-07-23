@@ -752,9 +752,9 @@ The =efs/org-font-setup= function configures various text faces to tweak the siz
     :config (require 'org-tempo)
     (add-to-list 'org-structure-template-alist '("s" . "src"))
     (add-to-list 'org-structure-template-alist '("q" . "quote"))
-    ;; (add-to-list 'org-structure-template-alist '("e" . "example"))
-    (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist '("x" . "example"))
+    (add-to-list 'org-structure-template-alist '("b" . "src shell"))
+    (add-to-list 'org-structure-template-alist '("e" . "src emacs-lisp"))
     (org-babel-do-load-languages 'org-babel-load-languages '((shell . t)
                                                              (emacs-lisp . t)))
     )
@@ -814,7 +814,7 @@ when marking a task as Done it will get a timestamp
 ** Agenda
 #+BEGIN_SRC emacs-lisp
   (setq org-agenda-skip-deadline-prewarning-if-scheduled 1)
-
+  (setq org-agenda-window-setup 'other-window)
   (setq org-agenda-prefix-format '(
                                    (todo .
                                          " %i %-1:c %(concat \"[ \"(org-format-outline-path (org-get-outline-path)) \" ]\") ")))
@@ -836,13 +836,15 @@ when marking a task as Done it will get a timestamp
 #+BEGIN_SRC emacs-lisp
 
   (my/leader
-    "oa" '(org-agenda :which-key "agenda"))
+    "oa" '(org-agenda :which-key "agenda")
+    "oc" '(org-capture :which-key "capture"))
 
   (my/leader org-mode-map
     "er" '(eval-region :which-key "eval region")
     "eb" '(org-babel-execute-src-block :which-key "eval babel")
     "m." '(counsel-org-goto :which-key "org-goto")
     "mA" '(org-archive-subtree :which-key "archieve subtree")
+    "mc" '(org-capture :which-key "capture")
     "mb" '(:ignore t :which-key "babel")
     "mbf" '(org-babel-tangle-file :which-key "tangle-file")
     "mbt" '(org-babel-tangle :which-key "tangle")
@@ -879,7 +881,59 @@ when marking a task as Done it will get a timestamp
 #+end_src
 
 
-** Auto-tangle Configuration Files
+** Capture
+support for creating a floating window for capture from DM
+http://www.diegoberrocal.com/blog/2015/08/19/org-protocol/
+
+for EXWM see .\desktop.org
+for i3 see ~\.config\i3\config
+
+#+begin_src emacs-lisp
+  (require 'org-protocol)
+
+  (defadvice org-capture
+      (after make-full-window-frame activate)
+    "Advise capture to be the only window when used as a popup"
+      (message "org-capture")
+    (if (equal "emacs-capture" (frame-parameter nil 'name))
+        (delete-other-windows)))
+
+
+  (defadvice org-capture-finalize
+       (after delete-capture-frame activate)
+    "Advise capture-finalize to close the frame"
+      (message "org-capture-finalize")
+    (if (equal "emacs-capture" (frame-parameter nil 'name))
+        (delete-frame)))
+#+end_src
+
+*** script file ~\bin\emacs-capture
+#+begin_src shell :tangle no
+  
+  #!/usr/bin/env bash
+  /usr/bin/emacsclient -n -c -F "((name . \"emacs-capture\") (height . 20) (width . 80))" "$@"
+
+#+end_src
+*** i3 example
+#+begin_src :tangle no
+
+for_window [title="emacs-capture"] floating enable
+
+set $emacs-capture "Emacs Capture:  (T)odo  (I)dea  (L)ink"
+mode $emacs-capture {
+    bindsym t exec ~/bin/emacs-capture --eval '(org-capture nil "t")'; mode "default"
+    bindsym l exec emacs-capture --eval '(org-capture nil "l")'; mode "default"
+    bindsym i exec emacs-capture --eval '(org-capture nil "i")'; mode "default"
+
+    bindsym q mode "default"
+    bindsym Ctrl+g mode "default"
+    bindsym Return mode "default"
+}
+#bindsym --release $mod+Shift+x  mode $emacs-capture
+bindsym $mod+Control+x exec ~/bin/emacs-capture --eval '(org-capture)'
+#+end_src
+
+** auto-tangle Configuration Files
 
 This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-config= gets executed each time such a buffer gets saved.  This function checks to see if the file being saved is the Emacs.org file you're looking at right now, and if so, automatically exports the configuration here to the associated output files.
 

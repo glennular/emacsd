@@ -423,19 +423,16 @@ M-n put word at point into Swiper
 ** Keybindings
 #+begin_src emacs-lisp
   (defun my/window-split-and-follow ()
-    "Split current window horizontally, then focus new window.
-  If `evil-split-window-below' is non-nil, the new window isn't focused."
     (interactive)
-    (let ((evil-split-window-below (not evil-split-window-below)))
-      (call-interactively #'evil-window-split)))
+    (split-window-below)
+    (other-window 1)
+    (switch-to-buffer (other-buffer)))
 
-  ;;;###autoload
   (defun my/window-vsplit-and-follow ()
-    "Split current window vertically, then focus new window.
-  If `evil-vsplit-window-right' is non-nil, the new window isn't focused."
     (interactive)
-    (let ((evil-vsplit-window-right (not evil-vsplit-window-right)))
-      (call-interactively #'evil-window-vsplit)))
+    (split-window-right)
+    (other-window 1)
+    (switch-to-buffer (other-buffer)))
 
   (my/leader
     "w" '(:ignore t :which-key "Window")
@@ -1141,7 +1138,9 @@ Set files list and tokens in the host specific file.
 
 #+begin_src emacs-lisp
   (use-package org-gcal
-    :init (setq org-gcal-local-timezone "America/Chicago"))
+    :init
+    (setq org-gcal-local-timezone "America/Chicago")
+    (setq org-gcal-notify-p nil))
 #+end_src
 
 * Search
@@ -1185,33 +1184,23 @@ Set files list and tokens in the host specific file.
     )
 #+end_src
 
+* Pinentry
+#+begin_src emacs-lisp
+  ;;(setq epa-pinentry-mode 'loopback)
+  ;;(pinentry-start)
+#+end_src
 * End hook
 #+begin_src emacs-lisp
   (run-hooks 'dotfiles/end-hook)
 #+end_src
-* Next
-** TODO evil-surround
-** TODO  Popup selection frame
-
-+ Display =ivy= completions in a popup buffer
-+ Set ~parent-frame~ to =nil= for [[file:desktop.org][Desktop]] support
-
+* Timers
 #+begin_src emacs-lisp
-  ;; (use-package ivy-posframe
-  ;;   :after ivy
-  ;;   :when (window-system)
-  ;;   :custom (ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
-  ;;           (ivy-posframe-parameters '((parent-frame nil)))
-  ;;   :config (ivy-posframe-mode 1))
+(run-with-timer 60 (* 60 60) 'recentf-save-list)
+(run-with-timer 60 (* 60 60) 'org-gcal-sync)
+
 #+end_src
-
-** TODO line numbering
-
-** TODO configure evil-redo
-   
-** TODO tab length
 * References
-** https://github.com/daviwil/emacs-from-scratch
-** https://github.com/daviwil/dotfiles/blob/master/Emacs.org
-** Example using literate and Spacemacs style keybindings 
-https://github.com/chayward1/dotf
+- https://github.com/daviwil/emacs-from-scratch
+- https://github.com/daviwil/dotfiles/blob/master/Emacs.org
+- Example using literate and Spacemacs style keybindings 
+  https://github.com/chayward1/dotf

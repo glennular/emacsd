@@ -116,10 +116,14 @@ Use counsel-linux-app but wrap with split functions
     (my/window-split-and-follow)
     (counsel-linux-app-action-default desktop-shortcut))
   (defun my/counsel-linux-app-action-vsplit(desktop-shortcut)
-    (my/window-vsplit-and-follow)
+    ;; (my/window-vsplit-and-follow)
+    (interactive)
+    (split-window-right)
+    (balance-windows)
+    (windmove-right)
     (counsel-linux-app-action-default desktop-shortcut))
 
-;;TODO refactor these to a single function
+  ;;TODO refactor these to a single function
 
   (defun my/counsel-linux-app-split (&optional arg)
     (interactive "P")
@@ -127,7 +131,7 @@ Use counsel-linux-app but wrap with split functions
               :predicate (unless arg (lambda (x) (get-text-property 0 'visible (car x))))
               :action #'my/counsel-linux-app-action-split
               :caller 'my/counsel-linux-app-split))
-              :sort t
+  :sort t
 
   (defun my/counsel-linux-app-vsplit (&optional arg)
     (interactive "P")
@@ -135,7 +139,7 @@ Use counsel-linux-app but wrap with split functions
               :predicate (unless arg (lambda (x) (get-text-property 0 'visible (car x))))
               :action #'my/counsel-linux-app-action-vsplit
               :caller 'my/counsel-linux-app-vsplit))
-              :sort t
+  :sort t
 
   (defun my/counsel-linux-app (&optional arg)
     (interactive "P")
@@ -143,7 +147,7 @@ Use counsel-linux-app but wrap with split functions
               :predicate (unless arg (lambda (x) (get-text-property 0 'visible (car x))))
               :action #'counsel-linux-app-action-default
               :caller 'my/counsel-linux-app))
-              :sort t
+  :sort t
 
 #+end_src
 ** Screen resolution
@@ -161,6 +165,14 @@ Use counsel-linux-app but wrap with split functions
     (interactive)
     (my/run-in-background "~/bin/lock.sh")) 
 #+end_src
+
+** org-capture
+#+begin_src emacs-lisp
+  (defun my/exwm-org-capture ()
+    (interactive)
+    (my/run-in-background "~/bin/emacs-capture --eval 'org-capture'")) 
+#+end_src
+
 ** Startup
 #+begin_src emacs-lisp
   (defun my/exwm-init-hook ()
@@ -285,7 +297,7 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
             ([s-down] . windmove-down)
             ([?\s-f] . exwm-layout-toggle-fullscreen)
             ([?\s-F] . exwm-floating-toggle-floating)
-            ([?\s-&] . (lambda (command)
+            ([?\s-D] . (lambda (command)
                          (interactive (list (read-shell-command "$ ")))
                          (start-process-shell-command command nil command)))
 
@@ -369,13 +381,24 @@ We use the excellent [[https://github.com/ch11ng/exwm][EXWM]] module as the basi
     (exwm-input-set-key (kbd "<s-return>") 'terminal-here-launch))
 #+end_src
 
-** Keybindings
+** Leader Keybindings
 #+begin_src emacs-lisp
   (my/leader exwm-map
     "d" '(exwm-debug :which-key "togggle debug")
     "f" '(exwm-floating-toggle-floating :which-key "togggle floating")
     "m" '(exwm-workspace-move-window :which-key "workspace move window")
     "F" '(exwm-floating-toggle-floating :which-key "togggle fullscreen"))
+#+end_src
+
+** EXWM buffer Keybindings
+
+#+begin_src emacs-lisp
+
+#+end_src
+** emacs buffer keybindings
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "s-q") 'shell)
 #+end_src
 * Desktop Environment
 

@@ -223,7 +223,7 @@ Trying out =straight.el= for package management.  So far so good!
     :config
     (setq ivy-use-virtual-buffers t)
     (evil-define-key 'insert ivy-minibuffer-map (kbd "C-k") 'ivy-previous-line)
-    (evil-define-key 'insert ivy-switch-buffer-map (kbd "c-d") 'ivy-switch-buffer-kill)
+    (evil-define-key 'insert ivy-switch-buffer-map (kbd "C-d") 'ivy-switch-buffer-kill)
     )
 #+end_src
 

@@ -667,6 +667,16 @@ Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
           evil-owl-max-string-length 50)
     (evil-owl-mode))
 #+end_src
+** company
+#+begin_src emacs-lisp
+(use-package company
+  :bind (:map company-active-map
+         ("C-n" . company-select-next)
+         ("C-p" . company-select-previous))
+  :config
+  (setq company-idle-delay 0.3)
+  (global-company-mode t))
+#+end_src
 * Snippets
 #+begin_src emacs-lisp
   (use-package yasnippet

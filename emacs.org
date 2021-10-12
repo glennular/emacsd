@@ -1,4 +1,5 @@
 #+title: Emacs Config
+#+PROPERTY: header-args :tangle ~/.emacs.d/emacs.el 
 #+STARTUP: content
 
 * Startup Performance
@@ -69,7 +70,7 @@ private org setting should be in host config
 
 #+begin_src emacs-lisp
 
-  (defvar my/orgmode-directory "~/org"
+  (defvar my/org-directory "~/org"
     "location of org files")
 
 #+end_src
@@ -87,11 +88,12 @@ These are host specific variables, plus all the private variables
 #+begin_src emacs-lisp
   (defun my/load-host (host-name)
     "Load the configuration file for `host-name'."
-    (let ((host-file (concat my/home "hosts/" host-name ".org")))
+    (let ((host-file (concat my/home "hosts/" host-name ".el")))
       (if (file-exists-p host-file)
           (progn
             (message "Loading Host file: %s" host-file)
-            (org-babel-load-file host-file))
+            (load host-file))
+            ;;(org-babel-load-file host-file))
         (message "No Host file found: %s" host-file))))
 
   (my/load-host system-name)
@@ -775,7 +777,7 @@ The =efs/org-font-setup= function configures various text faces to tweak the siz
     (visual-line-mode 1))
 
   (use-package org
-    :straight (:type built-in)
+    :straight (:type git :repo "https://code.orgmode.org/bzg/org-mode.git")
     :hook (org-mode . my/org-mode-setup)
     :config
     (setq org-ellipsis " ▾")
@@ -878,7 +880,7 @@ when marking a task as Done it will get a timestamp
 
 #+begin_src emacs-lisp
   (setq org-src-tab-acts-natively t) 
-  (setq org-directory my/orgmode-directory)
+  (setq org-directory my/org-directory)
 #+end_src
 ** Refiling
 *** Allow refiling to top level header
@@ -922,7 +924,7 @@ for i3 see ~\.config\i3\config
 
 #+end_src
 *** i3 example
-#+begin_src :tangle no
+#+begin_src shell :tangle no
 
 for_window [title="emacs-capture"] floating enable
 

@@ -78,7 +78,7 @@ private org setting should be in host config
 ** Hooks
 #+begin_src emacs-lisp
 
-(defvar dotfiles/end-hook nil
+(defvar my/end-hook nil
   "Hook called at the end of the config for custome host configs")
 #+end_src
 * Per Host Config (Overrides)
@@ -397,6 +397,7 @@ M-n put word at point into Swiper
   (my/leader
     "f"  '(:ignore t :which-key "file")
     "fd" '((lambda () (interactive) (find-file (expand-file-name "~/.emacs.d/emacs.org"))) :which-key "dotfile" )
+    "fD"  '(diff-buffer-with-file :which-key "unsaved diff")
     "ff"  '(find-file :which-key "find file")
     "fF"  '(counsel-locate :which-key "global find")
     "fj"  '(counsel-file-jump :which-key "jump to file")
@@ -404,7 +405,13 @@ M-n put word at point into Swiper
     "fR"  '(revert-buffer :which-key "revert file")
     "fs"  '(save-buffer :which-key "save"))
 #+end_src
-** Window Management Keybinding
+** Frame 
+#+begin_src emacs-lisp
+  (my/leader
+    "F"  '(:ignore t :which-key "Frame")
+    "Fn"  '(make-frame :which-key "new"))
+#+end_src
+** Window Management
 
 *** Winum
 #+begin_src emacs-lisp
@@ -422,7 +429,7 @@ M-n put word at point into Swiper
     )
 #+end_src
 
-** Keybindings
+*** Keybindings
 #+begin_src emacs-lisp
   (defun my/window-split-and-follow ()
     (interactive)
@@ -450,6 +457,26 @@ M-n put word at point into Swiper
     "wJ" '(evil-window-move-far-bottom :which-key "Down")
     "wK" '(evil-window-move-far-top :which-key "Up")
     "wL" '(evil-window-move-far-right :which-key "Right"))
+#+end_src
+
+** Yanking
+*** Links
+#+begin_src emacs-lisp
+  (defun my/yank-link (&optional arg)
+     "Extract URL from org-mode link and add it to kill ring."
+  (interactive "P")
+  (let* ((link (org-element-lineage (org-element-context) '(link) t))
+          (type (org-element-property :type link))
+          (url (org-element-property :path link))
+          (url (concat type ":" url)))
+    (kill-new url)
+    (message (concat "Copied URL: " url))))
+#+end_src
+*** Keybindings
+#+begin_src emacs-lisp
+  (my/leader
+    "y" '(:ignore t :which-key "yank")
+    "yl" '(my/yank-link :which-key "link"))
 #+end_src
 
 * Interface
@@ -536,7 +563,7 @@ Enable font ligatures via *Fira Code mode*[fn:11].
   (use-package fira-code-mode
     :when (and (window-system)
                (equal my/font "Fira Code"))
-    :hook (prog-mode org-mode))
+    :hook (prog-mode))
 #+end_src
 
 Toggle global ligature mode with =SPC t g=.
@@ -685,6 +712,8 @@ Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
     :hook (prog-mode . yas-minor-mode)
     :config
     (yas-reload-all))
+
+(use-package yasnippet-snippets)
 #+end_src
 * Files
 ** Auto-save 
@@ -713,7 +742,8 @@ Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
 #+END_SRC
 *** Auto save the recent list
 #+BEGIN_SRC emacs-lisp
-  (run-at-time nil (* 15 60) 'recentf-save-list)
+  ;;(run-at-time nil (* 15 60) 'recentf-save-list)
+  ;;moved to end
 #+END_SRC
 * Org
 ** Better Font Faces
@@ -759,18 +789,18 @@ The =efs/org-font-setup= function configures various text faces to tweak the siz
 
   (defun my/org-mode-config-templates ()
     :config (require 'org-tempo)
-    (add-to-list 'org-structure-template-alist '("s" . "src"))
+    (add-to-list 'org-structure-template-alist '("ss" . "src"))
     (add-to-list 'org-structure-template-alist '("q" . "quote"))
     (add-to-list 'org-structure-template-alist '("x" . "example"))
-    (add-to-list 'org-structure-template-alist '("b" . "src shell"))
-    (add-to-list 'org-structure-template-alist '("e" . "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist '("sb" . "src shell"))
+    (add-to-list 'org-structure-template-alist '("se" . "src emacs-lisp"))
     (org-babel-do-load-languages 'org-babel-load-languages '((shell . t)
                                                              (emacs-lisp . t)))
     )
 #+end_src
 ** General & Package Setup
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
   (defun my/org-mode-setup ()
     (org-indent-mode)
     (variable-pitch-mode 1)
@@ -784,19 +814,19 @@ The =efs/org-font-setup= function configures various text faces to tweak the siz
     (my/org-font-setup)
     (my/org-mode-config-templates))
 
-  (use-package org-bullets
-    :after org
-    :hook (org-mode . org-bullets-mode)
-    :custom
-    (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+  ;; (use-package org-bullets
+  ;;   :after org
+  ;;   :hook (org-mode . org-bullets-mode)
+  ;;   :custom
+  ;;   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-  (defun my/org-mode-visual-fill ()
+   (defun my/org-mode-visual-fill ()
     (setq visual-fill-column-width 100
           visual-fill-column-center-text t)
     (visual-fill-column-mode 1))
 
-  (use-package visual-fill-column
-    :hook (org-mode . my/org-mode-visual-fill))
+  ;; (use-package visual-fill-column
+  ;;   :hook (org-mode . my/org-mode-visual-fill))
 #+END_SRC
 
 ** superstar
@@ -843,6 +873,7 @@ when marking a task as Done it will get a timestamp
 ** Keybindings
 
 #+BEGIN_SRC emacs-lisp
+  ;;(evil-define-key 'normal org-mode-map (kbd "RET") 'org-open-at-point)
 
   (my/leader
     "oa" '(org-agenda :which-key "agenda")
@@ -865,7 +896,7 @@ when marking a task as Done it will get a timestamp
     "mi" '(:ignore t :which-key "Insert")
     "mih" '(org-insert-heading-after-current :which-key "heading(after)")
     "mit" '(org-insert-structure-template :which-key "template")
-    "mr" '(org-refile :which-key "refile")
+    "mR" '(org-refile :which-key "refile")
     "mt" '(org-todo :which-key "todo")
     "mT" '(org-todo-list :which-key "todo list")
     "mx" '(org-toggle-checkboox :which-key "toggle checkbox"))
@@ -956,9 +987,76 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
 
-  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+ ;; (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
 
 #+end_src
+** org-roam
+
+#+begin_src emacs-lisp
+
+  (use-package org-roam
+    :ensure t
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "~/roam")
+    :bind (("C-c n l" . org-roam-buffer-toggle)
+           ("C-c n f" . org-roam-node-find)
+           ("C-c n i" . org-roam-node-insert))
+    :config
+    ;;(org-roam-setup))
+    (org-roam-db-autosync-mode))
+
+
+
+  (my/leader
+    "r" '(org-roam-node-find :which-key "org-roam")
+    "or" '(org-roam-node-find :which-key "org-roam-node-find")
+    "ar" '(:ignore t :which-key "org-roam")
+    "arc" '(org-roam-capture :which-key "capture")
+    "arf" '(org-roam-node-find :which-key "node find")
+    "arg" '(org-roam-graph :which-key "graph")
+    "ali" '(org-roam-node-insert :which-key "node insert")
+    "arl" '(org-roam-buffer-toggle :which-key "buffer-toggle")
+    "art" '(:ignore t :which-key "tags")
+    "arta" '(org-roam-tag-add :which-key "tag add")
+    "artr" '(org-roam-tag-remove :which-key "tag remove")
+    "ara" '(org-roam-alias-add :which-key "alias add"))
+  
+  (my/leader org-mode-map
+    "mr" '(:ignore t :which-key "org-roam")
+    "mrc" '(org-roam-capture :which-key "capture")
+    "mrf" '(org-roam-node-find :which-key "node find")
+    "mrg" '(org-roam-graph :which-key "graph")
+    "mri" '(org-roam-node-insert :which-key "node insert")
+    "mrl" '(org-roam-buffer-toggle :which-key "buffer-toggle")
+    "mrt" '(:ignore t :which-key "tags")
+    "mrta" '(org-roam-tag-add :which-key "tag add")
+    "mrtr" '(org-roam-tag-remove :which-key "tag remove")
+    "mra" '(org-roam-alias-add :which-key "alias add"))
+#+end_src
+** Org-roam UI
+#+begin_src emacs-lisp
+    (use-package org-roam-ui
+    :straight
+      (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+      :after org-roam
+  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  ;;         a hookable mode anymore, you're advised to pick something yourself
+  ;;         if you don't care about startup time, use
+  ;;  :hook (after-init . org-roam-ui-mode)
+      :config
+      (setq org-roam-ui-sync-theme t
+            org-roam-ui-follow t
+            org-roam-ui-update-on-save t
+            org-roam-ui-open-on-start t))
+    
+  (my/leader org-mode-map
+    "mru" '(org-roam-ui-open :which-key "ui"))
+#+end_src
+
+#+RESULTS:
+
 * Help
 ** Keybindings
    
@@ -1012,7 +1110,7 @@ We use the excellent lsp-mode to enable IDE-like functionality for many differen
 The lsp-keymap-prefix setting enables you to define a prefix for where lsp-mode’s default keybindings will be added. I highly recommend using the prefix to find out what you can do with lsp-mode in a buffer.
 
 The which-key integration adds helpful descriptions of the various keys so you should be able to learn a lot just by pressing C-c l in a lsp-mode buffer and trying different things that you find there.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle nil
   (defun efs/lsp-mode-setup ()
     (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
     (lsp-headerline-breadcrumb-mode))
@@ -1027,7 +1125,7 @@ The which-key integration adds helpful descriptions of the various keys so you s
 #+end_src
 
 ** lsp-ui
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle nil
   (use-package lsp-ui
     :hook (lsp-mode . lsp-ui-mode)
     :config
@@ -1038,14 +1136,14 @@ The which-key integration adds helpful descriptions of the various keys so you s
 #+end_src
 
 ** lsp-treemacs
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle nil
   (use-package lsp-treemacs
     :after lsp)
 #+end_src
 
 ** Emacs LSP
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle nil
   (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
   (my/leader
@@ -1058,7 +1156,8 @@ The which-key integration adds helpful descriptions of the various keys so you s
     :keymaps '(visual)
     "er" '(eval-region :which-key "eval region"))
 #+end_src
-#+begin_src emacs-lisp
+
+#+begin_src emacs-lisp :tangle nil
   (use-package overseer
     :defer t
     :init (my/leader emacs-lisp-mode-map
@@ -1085,6 +1184,7 @@ The which-key integration adds helpful descriptions of the various keys so you s
     (my/leader
       "ts" '(flyspell-mode :which-key  "flyspell-mode")
       "Sb" '(flyspell-buffer :which-key "flyspell-buffer")
+      "Sd" '((lambda () (interactive) (find-file (expand-file-name ispell-personal-dictionary))) :which-key "dictionary" )
       "Sn" '(flyspell-goto-next-error :which-key "flyspell-goto-next-error")
       "Sp" '(flyspell-correct-at-point) :which-key "flyspell-correct-at-point)")
     (defhydra hydra-spelling ()
@@ -1114,14 +1214,14 @@ The which-key integration adds helpful descriptions of the various keys so you s
     :after flyspell-correct)
 #+end_src
 * Alerts
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle nil
   (use-package alert
     :commands alert
     :config
     (setq alert-default-style 'notifications))
 #+end_src
 * Dashboard
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle nil
   (use-package dashboard
     :custom (dashboard-center-content t)
     (dashboard-set-init-info t)
@@ -1148,11 +1248,15 @@ The which-key integration adds helpful descriptions of the various keys so you s
 
 Set files list and tokens in the host specific file.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp 
   (use-package org-gcal
     :init
     (setq org-gcal-local-timezone "America/Chicago")
-    (setq org-gcal-notify-p nil))
+    (setq org-gcal-notify-p nil)
+    (setq org-gcal-remove-api-cancelled-events t))
+
+  (my/leader
+    "ac" '(org-gcal-sync :which-key "gCal sync"))
 #+end_src
 
 * Search
@@ -1203,12 +1307,12 @@ Set files list and tokens in the host specific file.
 #+end_src
 * End hook
 #+begin_src emacs-lisp
-  (run-hooks 'dotfiles/end-hook)
+  (run-hooks 'my/end-hook)
 #+end_src
 * Timers
 #+begin_src emacs-lisp
 (run-with-timer 60 (* 60 60) 'recentf-save-list)
-(run-with-timer 60 (* 60 60) 'org-gcal-sync)
+;;(run-with-timer 60 (* 60 60) 'org-gcal-sync)
 
 #+end_src
 * References

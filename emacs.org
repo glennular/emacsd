@@ -17,6 +17,9 @@
   (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 #+end_src
 
+#+RESULTS:
+| efs/display-startup-time |
+
 * Config Variables
 ** General
 #+BEGIN_SRC emacs-lisp
@@ -35,10 +38,10 @@
   (defvar my/font "Fira Code" 
     "Unified system font family.")
 
-  (defvar my/font-size 120
+  (defvar my/font-size 130
     "Unified system font size.")
 
-  (defvar my/frame-transparency '(90 . 90)
+  (defvar my/frame-transparency '(95 . 95)
     "transperaency")
 
   (defvar my/idle 1.0
@@ -65,6 +68,9 @@
 
 #+END_SRC
 
+#+RESULTS:
+: my/public-key
+
 ** Org
 private org setting should be in host config
 
@@ -75,11 +81,14 @@ private org setting should be in host config
 
 #+end_src
 
+#+RESULTS:
+: my/org-directory
+
 ** Hooks
 #+begin_src emacs-lisp
 
 (defvar my/end-hook nil
-  "Hook called at the end of the config for custome host configs")
+  "Hook called at the end of the config for custom host configs")
 #+end_src
 * Per Host Config (Overrides)
 Must be ran after the config section
@@ -344,7 +353,7 @@ M-n put word at point into Swiper
 ** Top Level Keybindings
 #+begin_src emacs-lisp
   (my/leader
-    "."   '(find-file :which-key "Files")
+    ;;"."   '(find-file :which-key "Files")
     ":"   '(eval-expression :which-key "expression")
     "SPC" '(counsel-M-x :which-key "M-x")
     "r"   '(ivy-resume :which-key "ivy resume")
@@ -846,6 +855,17 @@ Enable `org-indent-mode' by default
   (setq org-startup-indented t) 
 #+END_SRC
 ** Todo settings
+
+Task flow
+#+begin_src emacs-lisp
+    (setq org-todo-keywords 
+      '((sequence "LATER(l)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)" "ARCHIVED(a)" "DROPPED(x)")
+        (sequence "FU(f)" "|" "DONE(d!)" )))
+    (setq org-use-fast-todo-selection 'nil)
+#+end_src
+
+#+RESULTS:
+
 when marking a task as Done it will get a timestamp
 #+BEGIN_SRC emacs-lisp
   (setq org-log-done 'time)  
@@ -991,23 +1011,36 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
 
 #+end_src
 ** org-roam
-
+*** Init
 #+begin_src emacs-lisp
 
   (use-package org-roam
     :ensure t
     :init
-    (setq org-roam-v2-ack t)
-    :custom
-    (org-roam-directory "~/roam")
+    (setq org-roam-v2-ack t
+        org-roam-directory "~/roam"
+        org-roam-dailies-journal "journal/"
+        org-roam-mode-sections
+            (list #'org-roam-backlinks-section
+                #'org-roam-reflinks-section
+                ;; #'org-roam-unlinked-references-section
+            ))
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert))
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n I" . org-roam-node-insert-immediate))
     :config
     ;;(org-roam-setup))
     (org-roam-db-autosync-mode))
 
 
+#+end_src
+
+#+RESULTS:
+: org-roam-node-insert-immediate
+
+*** Key Command
+#+begin_src emacs-lisp
 
   (my/leader
     "r" '(org-roam-node-find :which-key "org-roam")
@@ -1022,19 +1055,78 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
     "arta" '(org-roam-tag-add :which-key "tag add")
     "artr" '(org-roam-tag-remove :which-key "tag remove")
     "ara" '(org-roam-alias-add :which-key "alias add"))
-  
+
   (my/leader org-mode-map
     "mr" '(:ignore t :which-key "org-roam")
     "mrc" '(org-roam-capture :which-key "capture")
     "mrf" '(org-roam-node-find :which-key "node find")
     "mrg" '(org-roam-graph :which-key "graph")
     "mri" '(org-roam-node-insert :which-key "node insert")
+    "mri" '(org-roam-node-insert-immediate :which-key "node insert")
     "mrl" '(org-roam-buffer-toggle :which-key "buffer-toggle")
     "mrt" '(:ignore t :which-key "tags")
     "mrta" '(org-roam-tag-add :which-key "tag add")
     "mrtr" '(org-roam-tag-remove :which-key "tag remove")
     "mra" '(org-roam-alias-add :which-key "alias add"))
+
+  (my/leader 
+    "d" '(:ignore t :which-key "dailies")
+    "dd" '(org-roam-dailies-capture-today :which-key "capture today")
+    "dt" '(org-roam-dailies-goto-today :which-key "Today")
+    "dy" '(org-roam-dailies-goto-yesterday :which-key "Yesterday")
+    "dl" '(org-roam-dailies-goto-tomorrow :which-key "Later (Tommorow)")
+    "dg" '(org-roam-dailies-goto-date :which-key "Goto Date")
+    "db" '(org-roam-dailies-goto-previous-note :which-key "Back a Note")
+    "df" '(org-roam-dailies-goto-next-note :which-key "Forward a Note")
+    )
+  
+  (my/leader org-roam-dailies-map
+    "," '(org-roam-dailies-goto-previous-note :which-key "Back a Note")
+    "." '(org-roam-dailies-goto-next-note :which-key "Forward a Note")
+    )
 #+end_src
+
+#+RESULTS:
+
+*** Fast note insertion for a smoother writing flow
+
+#+begin_src emacs-lisp
+(defun org-roam-node-insert-immediate (arg &rest args)
+  (interactive "P")
+  (let ((args (cons arg args))
+        (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                  '(:immediate-finish t)))))
+    (apply #'org-roam-node-insert args)))
+#+end_src
+
+#+RESULTS:
+: org-roam-node-insert-immediate
+
+*** Refile to today
+#+begin_src emacs-lisp
+  (defun my/org-roam-copy-todo-to-today ()
+  (interactive)
+  (let ((org-refile-keep nil) ;; Set this to nil to delete the original!
+        (org-roam-dailies-capture-templates
+          '(("t" "tasks" entry "%?"
+             :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Tasks")))))
+        (org-after-refile-insert-hook #'save-buffer)
+        today-file
+        pos)
+    (save-window-excursion
+      (org-roam-dailies--capture (current-time) t)
+      (setq today-file (buffer-file-name))
+      (setq pos (point)))
+
+    ;; Only refile if the target file is different than the current file
+    (unless (equal (file-truename today-file)
+                   (file-truename (buffer-file-name)))
+      (org-refile nil nil (list "Tasks" today-file nil pos)))))
+#+end_src
+
+#+RESULTS:
+: my/org-roam-copy-todo-to-today
+
 ** Org-roam UI
 #+begin_src emacs-lisp
     (use-package org-roam-ui
@@ -1053,6 +1145,23 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
     
   (my/leader org-mode-map
     "mru" '(org-roam-ui-open :which-key "ui"))
+#+end_src
+
+** org-joural
+#+begin_src emacs-lisp
+  (use-package org-journal
+    :init
+    (setq org-journal-dir "~/org/journal/")
+    )
+#+end_src
+
+#+RESULTS:
+** Habits
+#+begin_src emacs-lisp
+  (require 'org-habit)
+  (add-to-list 'org-modules 'org-habit t)
+  (setq org-habit-graph-column 80)
+  (setq org-habit-show-habits-only-for-today nil)
 #+end_src
 
 #+RESULTS:
@@ -1256,8 +1365,14 @@ Set files list and tokens in the host specific file.
     (setq org-gcal-remove-api-cancelled-events t))
 
   (my/leader
-    "ac" '(org-gcal-sync :which-key "gCal sync"))
+    "ac" '(org-gcal-fetch :which-key "gCal fetch"))
+
+  (setq plstore-cache-passphrase-for-symmetric-encryption t)
+
 #+end_src
+
+#+RESULTS:
+: t
 
 * Search
 #+begin_src emacs-lisp
@@ -1302,7 +1417,7 @@ Set files list and tokens in the host specific file.
 
 * Pinentry
 #+begin_src emacs-lisp
-  ;;(setq epa-pinentry-mode 'loopback)
+  (setq epg-pinentry-mode 'loopback)
   ;;(pinentry-start)
 #+end_src
 * End hook

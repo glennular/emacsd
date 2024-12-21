@@ -1287,8 +1287,8 @@ The which-key integration adds helpful descriptions of the various keys so you s
 ** Flyspell
 #+begin_src emacs-lisp
   (use-package flyspell
-    :defer t
-    :diminish flyspell-mode
+    ;; :defer t
+    ;;:diminish flyspell-mode
     :init
     (my/leader
       "ts" '(flyspell-mode :which-key  "flyspell-mode")
@@ -1305,11 +1305,18 @@ The which-key integration adds helpful descriptions of the various keys so you s
     (my/leader
       "Ss" 'hydra-spelling/body)
     :config
-    (progn
-      (add-hook 'prog-mode-hook #'flyspell-prog-mode)
-      (add-hook 'text-mode-hook #'turn-on-flyspell)
-      (add-hook 'org-mode-hook #'turn-on-flyspell)))
+      (add-hook 'text-mode-hook 'flyspell-mode)
+      (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+      (add-hook 'org-mode-hook 'turn-on-flyspell)
+      (add-hook 'flyspell-mode-hook 'flyspell-buffer)
+      (add-to-list 'ispell-skip-region-alist '("^#+BEGIN_SRC" . "^#+END_SRC"))
+
+  	)
 #+end_src
+
+#+RESULTS:
+| flyspell-buffer |
+
 ** Flyspell w/ Ivy
 #+begin_src emacs-lisp
   (use-package flyspell-correct

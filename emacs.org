@@ -66,7 +66,7 @@
     "" ;;Override in host config
     "GPG key to encrypt org files for.")
 
-#+END_SRC
+    #+END_SRC
 
 #+RESULTS:
 : my/public-key
@@ -87,8 +87,8 @@ private org setting should be in host config
 ** Hooks
 #+begin_src emacs-lisp
 
-(defvar my/end-hook nil
-  "Hook called at the end of the config for custom host configs")
+  (defvar my/end-hook nil
+    "Hook called at the end of the config for custom host configs")
 #+end_src
 * Per Host Config (Overrides)
 Must be ran after the config section
@@ -102,7 +102,7 @@ These are host specific variables, plus all the private variables
           (progn
             (message "Loading Host file: %s" host-file)
             (load host-file))
-            ;;(org-babel-load-file host-file))
+        ;;(org-babel-load-file host-file))
         (message "No Host file found: %s" host-file))))
 
   (my/load-host system-name)
@@ -156,7 +156,7 @@ Set up ELPA, MELPA, and Org package repositories and load =use-package= to manag
 
   (setq use-package-always-ensure t)
 
-                           #+end_src
+#+end_src
 
 ** straight.el
 
@@ -472,14 +472,14 @@ M-n put word at point into Swiper
 *** Links
 #+begin_src emacs-lisp
   (defun my/yank-link (&optional arg)
-     "Extract URL from org-mode link and add it to kill ring."
-  (interactive "P")
-  (let* ((link (org-element-lineage (org-element-context) '(link) t))
-          (type (org-element-property :type link))
-          (url (org-element-property :path link))
-          (url (concat type ":" url)))
-    (kill-new url)
-    (message (concat "Copied URL: " url))))
+    "Extract URL from org-mode link and add it to kill ring."
+    (interactive "P")
+    (let* ((link (org-element-lineage (org-element-context) '(link) t))
+           (type (org-element-property :type link))
+           (url (org-element-property :path link))
+           (url (concat type ":" url)))
+      (kill-new url)
+      (message (concat "Copied URL: " url))))
 #+end_src
 *** Keybindings
 #+begin_src emacs-lisp
@@ -707,13 +707,13 @@ Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
 #+end_src
 ** company
 #+begin_src emacs-lisp
-(use-package company
-  :bind (:map company-active-map
-         ("C-n" . company-select-next)
-         ("C-p" . company-select-previous))
-  :config
-  (setq company-idle-delay 0.3)
-  (global-company-mode t))
+  (use-package company
+    :bind (:map company-active-map
+                ("C-n" . company-select-next)
+                ("C-p" . company-select-previous))
+    :config
+    (setq company-idle-delay 0.3)
+    (global-company-mode t))
 #+end_src
 * Snippets
 #+begin_src emacs-lisp
@@ -722,7 +722,7 @@ Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
     :config
     (yas-reload-all))
 
-(use-package yasnippet-snippets)
+  (use-package yasnippet-snippets)
 #+end_src
 * Files
 ** Auto-save 
@@ -829,7 +829,7 @@ The =efs/org-font-setup= function configures various text faces to tweak the siz
   ;;   :custom
   ;;   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
-   (defun my/org-mode-visual-fill ()
+  (defun my/org-mode-visual-fill ()
     (setq visual-fill-column-width 100
           visual-fill-column-center-text t)
     (visual-fill-column-mode 1))
@@ -858,10 +858,10 @@ Enable `org-indent-mode' by default
 
 Task flow
 #+begin_src emacs-lisp
-    (setq org-todo-keywords 
-      '((sequence "LATER(l)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)" "ARCHIVED(a)" "DROPPED(x)")
-        (sequence "FU(f)" "|" "DONE(d!)" )))
-    (setq org-use-fast-todo-selection 'nil)
+  (setq org-todo-keywords 
+        '((sequence "LATER(l)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)" "ARCHIVED(a)" "DROPPED(x)")
+  	(sequence "FU(f)" "|" "DONE(d!)" )))
+  (setq org-use-fast-todo-selection 'nil)
 #+end_src
 
 #+RESULTS:
@@ -954,22 +954,22 @@ for i3 see ~\.config\i3\config
   (defadvice org-capture
       (after make-full-window-frame activate)
     "Advise capture to be the only window when used as a popup"
-      (message "org-capture")
+    (message "org-capture")
     (if (equal "emacs-capture" (frame-parameter nil 'name))
         (delete-other-windows)))
 
 
   (defadvice org-capture-finalize
-       (after delete-capture-frame activate)
+      (after delete-capture-frame activate)
     "Advise capture-finalize to close the frame"
-      (message "org-capture-finalize")
+    (message "org-capture-finalize")
     (if (equal "emacs-capture" (frame-parameter nil 'name))
         (delete-frame)))
 #+end_src
 
 *** script file ~\bin\emacs-capture
 #+begin_src shell :tangle no
-  
+
   #!/usr/bin/env bash
   /usr/bin/emacsclient -n -c -F "((name . \"emacs-capture\") (height . 20) (width . 80))" "$@"
 
@@ -977,20 +977,20 @@ for i3 see ~\.config\i3\config
 *** i3 example
 #+begin_src shell :tangle no
 
-for_window [title="emacs-capture"] floating enable
+  for_window [title="emacs-capture"] floating enable
 
-set $emacs-capture "Emacs Capture:  (T)odo  (I)dea  (L)ink"
-mode $emacs-capture {
-    bindsym t exec ~/bin/emacs-capture --eval '(org-capture nil "t")'; mode "default"
-    bindsym l exec emacs-capture --eval '(org-capture nil "l")'; mode "default"
-    bindsym i exec emacs-capture --eval '(org-capture nil "i")'; mode "default"
+  set $emacs-capture "Emacs Capture:  (T)odo  (I)dea  (L)ink"
+  mode $emacs-capture {
+      bindsym t exec ~/bin/emacs-capture --eval '(org-capture nil "t")'; mode "default"
+      bindsym l exec emacs-capture --eval '(org-capture nil "l")'; mode "default"
+      bindsym i exec emacs-capture --eval '(org-capture nil "i")'; mode "default"
 
-    bindsym q mode "default"
-    bindsym Ctrl+g mode "default"
-    bindsym Return mode "default"
-}
-#bindsym --release $mod+Shift+x  mode $emacs-capture
-bindsym $mod+Control+x exec ~/bin/emacs-capture --eval '(org-capture)'
+      bindsym q mode "default"
+      bindsym Ctrl+g mode "default"
+      bindsym Return mode "default"
+  }
+  #bindsym --release $mod+Shift+x  mode $emacs-capture
+  bindsym $mod+Control+x exec ~/bin/emacs-capture --eval '(org-capture)'
 #+end_src
 
 ** auto-tangle Configuration Files
@@ -1007,7 +1007,7 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
 
- ;; (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
+  ;; (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
 
 #+end_src
 ** org-roam
@@ -1018,13 +1018,13 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
     :ensure t
     :init
     (setq org-roam-v2-ack t
-        org-roam-directory "~/roam"
-        org-roam-dailies-journal "journal/"
-        org-roam-mode-sections
-            (list #'org-roam-backlinks-section
+  	org-roam-directory "~/roam"
+  	org-roam-dailies-journal "journal/"
+  	org-roam-mode-sections
+          (list #'org-roam-backlinks-section
                 #'org-roam-reflinks-section
                 ;; #'org-roam-unlinked-references-section
-            ))
+                ))
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n i" . org-roam-node-insert)
@@ -1079,7 +1079,7 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
     "db" '(org-roam-dailies-goto-previous-note :which-key "Back a Note")
     "df" '(org-roam-dailies-goto-next-note :which-key "Forward a Note")
     )
-  
+
   (my/leader org-roam-dailies-map
     "," '(org-roam-dailies-goto-previous-note :which-key "Back a Note")
     "." '(org-roam-dailies-goto-next-note :which-key "Forward a Note")
@@ -1091,12 +1091,12 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
 *** Fast note insertion for a smoother writing flow
 
 #+begin_src emacs-lisp
-(defun org-roam-node-insert-immediate (arg &rest args)
-  (interactive "P")
-  (let ((args (cons arg args))
-        (org-roam-capture-templates (list (append (car org-roam-capture-templates)
-                                                  '(:immediate-finish t)))))
-    (apply #'org-roam-node-insert args)))
+  (defun org-roam-node-insert-immediate (arg &rest args)
+    (interactive "P")
+    (let ((args (cons arg args))
+          (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                    '(:immediate-finish t)))))
+      (apply #'org-roam-node-insert args)))
 #+end_src
 
 #+RESULTS:
@@ -1105,23 +1105,23 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
 *** Refile to today
 #+begin_src emacs-lisp
   (defun my/org-roam-copy-todo-to-today ()
-  (interactive)
-  (let ((org-refile-keep nil) ;; Set this to nil to delete the original!
-        (org-roam-dailies-capture-templates
-          '(("t" "tasks" entry "%?"
-             :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Tasks")))))
-        (org-after-refile-insert-hook #'save-buffer)
-        today-file
-        pos)
-    (save-window-excursion
-      (org-roam-dailies--capture (current-time) t)
-      (setq today-file (buffer-file-name))
-      (setq pos (point)))
+    (interactive)
+    (let ((org-refile-keep nil) ;; Set this to nil to delete the original!
+  	(org-roam-dailies-capture-templates
+           '(("t" "tasks" entry "%?"
+              :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Tasks")))))
+  	(org-after-refile-insert-hook #'save-buffer)
+  	today-file
+  	pos)
+      (save-window-excursion
+        (org-roam-dailies--capture (current-time) t)
+        (setq today-file (buffer-file-name))
+        (setq pos (point)))
 
-    ;; Only refile if the target file is different than the current file
-    (unless (equal (file-truename today-file)
-                   (file-truename (buffer-file-name)))
-      (org-refile nil nil (list "Tasks" today-file nil pos)))))
+      ;; Only refile if the target file is different than the current file
+      (unless (equal (file-truename today-file)
+                     (file-truename (buffer-file-name)))
+        (org-refile nil nil (list "Tasks" today-file nil pos)))))
 #+end_src
 
 #+RESULTS:
@@ -1129,20 +1129,20 @@ This snippet adds a hook to =org-mode= buffers so that =efs/org-babel-tangle-con
 
 ** Org-roam UI
 #+begin_src emacs-lisp
-    (use-package org-roam-ui
+  (use-package org-roam-ui
     :straight
-      (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-      :after org-roam
-  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-  ;;         a hookable mode anymore, you're advised to pick something yourself
-  ;;         if you don't care about startup time, use
-  ;;  :hook (after-init . org-roam-ui-mode)
-      :config
-      (setq org-roam-ui-sync-theme t
-            org-roam-ui-follow t
-            org-roam-ui-update-on-save t
-            org-roam-ui-open-on-start t))
-    
+    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+    :after org-roam
+    ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+    ;;         a hookable mode anymore, you're advised to pick something yourself
+    ;;         if you don't care about startup time, use
+    ;;  :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+
   (my/leader org-mode-map
     "mru" '(org-roam-ui-open :which-key "ui"))
 #+end_src
@@ -1305,13 +1305,13 @@ The which-key integration adds helpful descriptions of the various keys so you s
     (my/leader
       "Ss" 'hydra-spelling/body)
     :config
-      (add-hook 'text-mode-hook 'flyspell-mode)
-      (add-hook 'prog-mode-hook 'flyspell-prog-mode)
-      (add-hook 'org-mode-hook 'turn-on-flyspell)
-      (add-hook 'flyspell-mode-hook 'flyspell-buffer)
-      (add-to-list 'ispell-skip-region-alist '("^#+BEGIN_SRC" . "^#+END_SRC"))
+    (add-hook 'text-mode-hook 'flyspell-mode)
+    (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+    (add-hook 'org-mode-hook 'turn-on-flyspell)
+    (add-hook 'flyspell-mode-hook 'flyspell-buffer)
+    (add-to-list 'ispell-skip-region-alist '("^#+BEGIN_SRC" . "^#+END_SRC"))
 
-  	)
+    )
 #+end_src
 
 #+RESULTS:
@@ -1427,6 +1427,30 @@ Set files list and tokens in the host specific file.
   (setq epg-pinentry-mode 'loopback)
   ;;(pinentry-start)
 #+end_src
+* howm
+#+begin_src emacs-lisp :tangle nil
+  (use-package howm
+    :ensure t
+    :init
+    ;; Where to store the files?
+    (setq howm-directory "~/howm")
+    (setq howm-home-directory howm-directory)
+    ;; What format to use for the files?
+    (setq howm-file-name-format "%Y-%m-%d-%H%M%S.org")
+    (setq howm-view-title-header "*")
+    (setq howm-dtime-format "<%Y-%m-%d %a %H:%M>")
+    ;; Avoid conflicts with Org-mode by changing Howm's prefix from "C-c ,".
+    (setq howm-prefix (kbd "C-c ;"))
+    :bind*
+    ;; Conveniently open the Howm menu with "C-c ; ;".
+    ("C-c ; ;" . howm-menu))
+
+  (my/leader
+    "ah" '(howm-menu :which-key "howm"))
+#+end_src
+
+#+RESULTS:
+
 * End hook
 #+begin_src emacs-lisp
   (run-hooks 'my/end-hook)

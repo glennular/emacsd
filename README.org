@@ -19,6 +19,11 @@ Ubuntu:  `apt-get install fonts-cantarell`
 ** Post Install
 Install Emojis
 
+** Set up Enchant for Flyspell
+`brew install enchant`
+
+https://www.lonecpluspluscoder.com/2021/02/01/setting-up-enchant-for-use-with-flyspell-mode-on-macos/
+
 * References:
 - Emacs from scratch:
   https://github.com/daviwil/emacs-from-scratch

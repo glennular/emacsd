@@ -1374,7 +1374,7 @@ Set files list and tokens in the host specific file.
   (my/leader
     "ac" '(org-gcal-fetch :which-key "gCal fetch"))
 
-  (setq plstore-cache-passphrase-for-symmetric-encryption t)
+  ;;(setq plstore-cache-passphrase-for-symmetric-encryption t)
 
 #+end_src
 

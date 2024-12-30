@@ -2,6 +2,8 @@
 #+PROPERTY: header-args :tangle ~/.emacs.d/emacs.el 
 #+STARTUP: content
 #+auto_tangle: t
+#+PROPERTY: header-args    :results silent
+
 
 * Startup Performance
 #+begin_src emacs-lisp 
@@ -17,9 +19,6 @@
 
   (add-hook 'emacs-startup-hook #'efs/display-startup-time)
 #+end_src
-
-#+RESULTS:
-| efs/display-startup-time |
 
 * Config Variables
 ** General
@@ -69,9 +68,6 @@
 
 #+END_SRC
 
-#+RESULTS:
-: my/public-key
-
 ** Org
 private org setting should be in host config
 
@@ -81,9 +77,6 @@ private org setting should be in host config
     "location of org files")
 
 #+end_src
-
-#+RESULTS:
-: my/org-directory
 
 ** Hooks
 #+begin_src emacs-lisp
@@ -865,8 +858,6 @@ Task flow
   (setq org-use-fast-todo-selection 'nil)
 #+end_src
 
-#+RESULTS:
-
 when marking a task as Done it will get a timestamp
 #+BEGIN_SRC emacs-lisp
   (setq org-log-done 'time)  
@@ -1030,9 +1021,6 @@ Tangle any file with this ```#+auto_tangle: t```
 
 #+end_src
 
-#+RESULTS:
-: org-roam-node-insert-immediate
-
 *** Key Command
 #+begin_src emacs-lisp
 
@@ -1080,8 +1068,6 @@ Tangle any file with this ```#+auto_tangle: t```
     )
 #+end_src
 
-#+RESULTS:
-
 *** Fast note insertion for a smoother writing flow
 
 #+begin_src emacs-lisp
@@ -1092,9 +1078,6 @@ Tangle any file with this ```#+auto_tangle: t```
                                                     '(:immediate-finish t)))))
       (apply #'org-roam-node-insert args)))
 #+end_src
-
-#+RESULTS:
-: org-roam-node-insert-immediate
 
 *** Refile to today
 #+begin_src emacs-lisp
@@ -1117,9 +1100,6 @@ Tangle any file with this ```#+auto_tangle: t```
                      (file-truename (buffer-file-name)))
         (org-refile nil nil (list "Tasks" today-file nil pos)))))
 #+end_src
-
-#+RESULTS:
-: my/org-roam-copy-todo-to-today
 
 ** Org-roam UI
 #+begin_src emacs-lisp
@@ -1149,7 +1129,6 @@ Tangle any file with this ```#+auto_tangle: t```
     )
 #+end_src
 
-#+RESULTS:
 ** Habits
 #+begin_src emacs-lisp
   (require 'org-habit)
@@ -1157,8 +1136,6 @@ Tangle any file with this ```#+auto_tangle: t```
   (setq org-habit-graph-column 80)
   (setq org-habit-show-habits-only-for-today nil)
 #+end_src
-
-#+RESULTS:
 
 * Help
 ** Keybindings
@@ -1349,9 +1326,6 @@ The which-key integration adds helpful descriptions of the various keys so you s
     )
 #+end_src
 
-#+RESULTS:
-| flyspell-buffer |
-
 ** Flyspell w/ Ivy
 #+begin_src emacs-lisp
   (use-package flyspell-correct
@@ -1412,9 +1386,6 @@ Set files list and tokens in the host specific file.
   ;;(setq plstore-cache-passphrase-for-symmetric-encryption t)
 
 #+end_src
-
-#+RESULTS:
-: t
 
 * Search
 #+begin_src emacs-lisp
@@ -1483,8 +1454,6 @@ Set files list and tokens in the host specific file.
   (my/leader
     "ah" '(howm-menu :which-key "howm"))
 #+end_src
-
-#+RESULTS:
 
 * End hook
 #+begin_src emacs-lisp

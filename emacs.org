@@ -1,9 +1,7 @@
 #+title: Emacs Config
-#+PROPERTY: header-args :tangle ~/.emacs.d/emacs.el 
+#+PROPERTY: header-args :tangle ~/.emacs.d/emacs.el :results silent 
 #+STARTUP: content
 #+auto_tangle: t
-#+PROPERTY: header-args    :results silent
-
 
 * Startup Performance
 #+begin_src emacs-lisp 

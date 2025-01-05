@@ -25,6 +25,9 @@ Install Emojis
 
 https://www.lonecpluspluscoder.com/2021/02/01/setting-up-enchant-for-use-with-flyspell-mode-on-macos/
 
+** Set Up MacOS emacsclient
+http://yitang.uk/2023/02/09/emacs-as-service-in-macos/
+
 * References:
 - Emacs from scratch:
   https://github.com/daviwil/emacs-from-scratch

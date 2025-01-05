@@ -15,7 +15,8 @@ This is my Emacs config from scratch after using both [[https://github.com/syl20
 https://github.com/tonsky/FiraCode/wiki/Installing
 ** Install cantarell font
 Ubuntu:  `apt-get install fonts-cantarell`
-
+** Tangle emacs.org
+`emacs --batch --eval "(require 'org)" --eval '(org-babel-tangle-file "emacs.org")'   
 ** Post Install
 Install Emojis
 

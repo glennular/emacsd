@@ -1188,7 +1188,7 @@ We use the excellent lsp-mode to enable IDE-like functionality for many differen
 The lsp-keymap-prefix setting enables you to define a prefix for where lsp-mode’s default keybindings will be added. I highly recommend using the prefix to find out what you can do with lsp-mode in a buffer.
 
 The which-key integration adds helpful descriptions of the various keys so you should be able to learn a lot just by pressing C-c l in a lsp-mode buffer and trying different things that you find there.
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp
   (defun efs/lsp-mode-setup ()
     (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
     (lsp-headerline-breadcrumb-mode))
@@ -1203,7 +1203,7 @@ The which-key integration adds helpful descriptions of the various keys so you s
 #+end_src
 
 ** lsp-ui
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp
   (use-package lsp-ui
     :hook (lsp-mode . lsp-ui-mode)
     :config

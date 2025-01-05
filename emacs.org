@@ -1214,14 +1214,14 @@ The which-key integration adds helpful descriptions of the various keys so you s
 #+end_src
 
 ** lsp-treemacs
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp 
   (use-package lsp-treemacs
     :after lsp)
 #+end_src
 
 ** Emacs LSP
 
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp
   (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
   (my/leader
@@ -1235,7 +1235,7 @@ The which-key integration adds helpful descriptions of the various keys so you s
     "er" '(eval-region :which-key "eval region"))
 #+end_src
 
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp
   (use-package overseer
     :defer t
     :init (my/leader emacs-lisp-mode-map
@@ -1337,14 +1337,14 @@ The which-key integration adds helpful descriptions of the various keys so you s
     :after flyspell-correct)
 #+end_src
 * Alerts
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp :tangle no
   (use-package alert
     :commands alert
     :config
     (setq alert-default-style 'notifications))
 #+end_src
 * Dashboard
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp :tangle no
   (use-package dashboard
     :custom (dashboard-center-content t)
     (dashboard-set-init-info t)
@@ -1432,7 +1432,7 @@ Set files list and tokens in the host specific file.
   ;;(pinentry-start)
 #+end_src
 * howm
-#+begin_src emacs-lisp :tangle nil
+#+begin_src emacs-lisp :tangle no
   (use-package howm
     :ensure t
     :init

@@ -1289,8 +1289,15 @@ The which-key integration adds helpful descriptions of the various keys so you s
 ** Docker
 #+begin_src emacs-lisp
   (use-package docker
-  :ensure t
-  :bind ("C-c d" . docker))
+    :ensure t
+    :bind ("C-c d" . docker))
+
+  (use-package dockerfile-mode
+    :ensure t
+    :mode
+    ("Dockerfile\\'" . dockerfile-mode)
+    :config
+    (setq-default docker-use-sudo nil))
 #+end_src
 
 * Spelling

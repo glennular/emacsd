@@ -182,23 +182,26 @@ Trying out =straight.el= for package management.  So far so good!
 
 ** No littering
 #+begin_src emacs-lisp
-
   ;; Use no-littering to automatically set common paths to the new user-emacs-directory
   (use-package no-littering)
 #+end_src
 
 ** Auto Updates
 #+begin_src emacs-lisp
-  ;;(use-package auto-package-update
-  ;;  :custom
-  ;;  (auto-package-update-interval 7)
-  ;; (auto-package-update-prompt-before-update t)
-  ;; (auto-package-update-hide-results t)
-  ;; :config
-  ;; (auto-package-update-maybe)
-  ;;(auto-package-update-at-time "09:00"))
+  (use-package auto-package-update
+    :custom
+    (auto-package-update-interval 7)
+   (auto-package-update-prompt-before-update t)
+   (auto-package-update-hide-results t)
+   :config
+   (auto-package-update-maybe)
+  (auto-package-update-at-time "09:00"))
 #+end_src
-
+** Diminish
+#+begin_src emacs-lisp
+   (use-package diminish
+      :ensure t)
+#+end_src
 * Editor
 ** Selection menu
 
@@ -366,22 +369,27 @@ M-n put word at point into Swiper
 
 ** Buffer
 #+begin_src emacs-lisp
-  (defun my/kill-buffer ()
-    (interactive)
-    (kill-buffer nil)) 
+      (defun my/kill-buffer ()
+        (interactive)
+        (kill-buffer nil)) 
 
-  (my/leader
-    "," '(counsel-switch-buffer :which-key "Buffers")
-    "SPC"  '(counsel-M-x :which-key "M-x")
-    "bb"  '(ivy-switch-buffer :which-key "list")
-    "bB"  '(ivy-switch-buffer-other-window :which-key "list +other win")
-    "bd"  '(my/kill-buffer :which-key "delete")
-    "bD"  '(evil-delete-buffer :which-key "delete + windows")
-    "bl"  '(evil-switch-to-windows-last-buffer :which-key "last")
-    "bm"  '(exit-minibuffer :which-key "exit-mini")
-    "bn"  '(next-buffer :which-key "next")
-    "bp"  '(previous-buffer :which-key "prev")
-    "br"  '(counsel-buffer-or-recentf  :which-key "recent"))
+      (defun my/close-all-buffers ()
+        (interactive)
+        (mapc 'kill-buffer (buffer-list)))
+      
+
+      (my/leader
+        "," '(counsel-switch-buffer :which-key "Buffers")
+        "SPC"  '(counsel-M-x :which-key "M-x")
+        "bb"  '(ivy-switch-buffer :which-key "list")
+        "bB"  '(ivy-switch-buffer-other-window :which-key "list +other win")
+        "bd"  '(my/kill-buffer :which-key "delete")
+        "bD"  '(evil-delete-buffer :which-key "delete + windows")
+        "bl"  '(evil-switch-to-windows-last-buffer :which-key "last")
+        "bm"  '(exit-minibuffer :which-key "exit-mini")
+        "bn"  '(next-buffer :which-key "next")
+        "bp"  '(previous-buffer :which-key "prev")
+        "br"  '(counsel-buffer-or-recentf  :which-key "recent"))
 #+end_src
 
 ** Exiting / Quiting Keybindings
@@ -660,7 +668,7 @@ Include full tree of the org location
 
 ** Parentheses
 
-***  Highlight matching
+*** Highlight matching
 #+begin_src emacs-lisp
   (show-paren-mode 1)
 #+end_src
@@ -707,6 +715,19 @@ Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
     (setq company-idle-delay 0.3)
     (global-company-mode t))
 #+end_src
+** ansi-color
+fix the encoding in the shell buffers
+#+begin_src emacs-lisp
+  (require 'ansi-color)
+  (defun my/ansi-colorize-buffer ()
+    (let ((buffer-read-only nil))
+      (ansi-color-apply-on-region (point-min) (point-max))))
+  (add-hook 'compilation-filter-hook 'my/ansi-colorize-buffer)
+#+end_src
+** UTF
+ #+begin_src emacs-lisp
+   (set-language-environment "UTF-8")
+ #+end_src
 * Snippets
 #+begin_src emacs-lisp
   (use-package yasnippet
@@ -746,6 +767,16 @@ Colorize nested parenthesis with *Rainbow delimiters*[fn:8].
   ;;(run-at-time nil (* 15 60) 'recentf-save-list)
   ;;moved to end
 #+END_SRC
+** Auto-save Org files
+#+begin_src emacs-lisp
+  (add-hook 'auto-save-hook 'org-save-all-org-buffers)
+#+end_src
+** Auto Revert
+#+begin_src emacs-lisp
+  (custom-set-variables
+   '(auto-revert-interval 1))
+  (global-auto-revert-mode 1)
+#+end_src
 * Org
 ** Better Font Faces
 
@@ -841,7 +872,7 @@ Make headline stars *super* with *Org superstar mode*[fn:14].
   ;;   :hook (org-mode . org-superstar-mode))
 #+end_src
 
-** Indendent setting
+** Indent setting
 Enable `org-indent-mode' by default
 #+BEGIN_SRC emacs-lisp
   (setq org-startup-indented t) 
@@ -864,9 +895,9 @@ when marking a task as Done it will get a timestamp
 #+BEGIN_SRC emacs-lisp
   (setq org-agenda-skip-deadline-prewarning-if-scheduled 1)
   (setq org-agenda-window-setup 'other-window)
-  (setq org-agenda-prefix-format '(
-                                   (todo .
-                                         " %i %-1:c %(concat \"[ \"(org-format-outline-path (org-get-outline-path)) \" ]\") ")))
+  ;;(setq org-agenda-prefix-format '(
+  ;;                                 (todo .
+  ;;                                       " %i %-1:c %(concat \"[ \"(org-format-outline-path ;;(org-get-outline-path)) \" ]\") ")))
 #+END_SRC
 
 ** Evil
@@ -891,7 +922,7 @@ when marking a task as Done it will get a timestamp
 
   (my/leader org-mode-map
     "er" '(eval-region :which-key "eval region")
-    "eb" '(org-babel-execute-src-block :which-key "eval babel")
+    "es" '(org-babel-execute-src-block :which-key "eval src block")
     "m." '(counsel-org-goto :which-key "org-goto")
     "mA" '(org-archive-subtree :which-key "archieve subtree")
     "mc" '(org-capture :which-key "capture")
@@ -1304,8 +1335,8 @@ The which-key integration adds helpful descriptions of the various keys so you s
 ** Flyspell
 #+begin_src emacs-lisp
   (use-package flyspell
-    ;; :defer t
-    ;;:diminish flyspell-mode
+    :defer t
+    :diminish flyspell-mode
     :init
     (my/leader
       "ts" '(flyspell-mode :which-key  "flyspell-mode")

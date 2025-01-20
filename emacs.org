@@ -610,7 +610,7 @@ Gotta have those emojis, first class support for Emacs via the *Emacs-emojify*[f
     "ifs" '(emojify-apropos-emoji :which-key "Search")
     "ifi" '(emojify-insert-emoji :which-key "Insert")
     "ifd" '(emojify-describe-emoji :which-key "Describe"))
-#+end_src
+    #+end_src
 
 ** Modern themes
 
@@ -725,9 +725,9 @@ fix the encoding in the shell buffers
   (add-hook 'compilation-filter-hook 'my/ansi-colorize-buffer)
 #+end_src
 ** UTF
- #+begin_src emacs-lisp
-   (set-language-environment "UTF-8")
- #+end_src
+#+begin_src emacs-lisp
+  (set-language-environment "UTF-8")
+#+end_src
 * Snippets
 #+begin_src emacs-lisp
   (use-package yasnippet
@@ -883,8 +883,12 @@ Task flow
 #+begin_src emacs-lisp
   (setq org-todo-keywords 
         '((sequence "LATER(l)" "TODO(t)" "NEXT(n)" "|" "DONE(d!)" "ARCHIVED(a)" "DROPPED(x)")
-  	(sequence "FU(f)" "|" "DONE(d!)" )))
+  	(sequence "FU(f)" "|" "DONE(d!)" )
+  	;;(sequence "HABIT(h)", "|", "DONE(d!)")
+  	))
   (setq org-use-fast-todo-selection 'nil)
+  (setq org-log-into-drawer t)
+  (setq org-log-reschedule 'note)
 #+end_src
 
 when marking a task as Done it will get a timestamp
@@ -1075,6 +1079,7 @@ Tangle any file with this ```#+auto_tangle: t```
     "mri" '(org-roam-node-insert :which-key "node insert")
     "mri" '(org-roam-node-insert-immediate :which-key "node insert")
     "mrl" '(org-roam-buffer-toggle :which-key "buffer-toggle")
+    "mrr" '(org-roam-refile :which-key "refile")
     "mrt" '(:ignore t :which-key "tags")
     "mrta" '(org-roam-tag-add :which-key "tag add")
     "mrtr" '(org-roam-tag-remove :which-key "tag remove")
@@ -1163,7 +1168,7 @@ Tangle any file with this ```#+auto_tangle: t```
   (require 'org-habit)
   (add-to-list 'org-modules 'org-habit t)
   (setq org-habit-graph-column 80)
-  (setq org-habit-show-habits-only-for-today nil)
+  (setq org-habit-show-habits-only-for-today t)
 #+end_src
 
 * Help
@@ -1491,6 +1496,17 @@ Set files list and tokens in the host specific file.
     "ah" '(howm-menu :which-key "howm"))
 #+end_src
 
+* Shell
+#+begin_src emacs-lisp
+  (setq system-uses-terminfo nil)
+
+  (setq explicit-shell-file-name "/bin/zsh")
+  (setq shell-file-name "zsh")
+  (setq explicit-zsh-args '("--login" "--interactive"))
+  (defun zsh-shell-mode-setup ()
+    (setq-local comint-process-echoes t))
+  (add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
+#+end_src
 * End hook
 #+begin_src emacs-lisp
   (run-hooks 'my/end-hook)
